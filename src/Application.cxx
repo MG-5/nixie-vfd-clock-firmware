@@ -41,3 +41,16 @@ Application &Application::getApplicationInstance()
     // access this function, while application constructs which will cause infinite recursion
     return *instance;
 }
+
+//--------------------------------------------------------------------------------------------------
+HAL_StatusTypeDef Application::registerCallbacks()
+{
+    HAL_StatusTypeDef result = HAL_OK;
+
+    // SPI callback for addressable LEDs
+    result = HAL_SPI_RegisterCallback(LedSpiPeripherie, HAL_SPI_TX_COMPLETE_CB_ID,
+                                      [](SPI_HandleTypeDef *)
+                                      { getApplicationInstance().lightController.notifySpiIsFinished(); });
+
+    return result;
+}

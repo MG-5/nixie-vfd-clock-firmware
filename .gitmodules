@@ -4,3 +4,7 @@
 [submodule "src/util"]
 	path = src/util
 	url = ../util.git
+[submodule "src/LED/gcem"]
+	path = src/LED/gcem
+	url = ../../kthohr/gcem.git
+	branch = master

@@ -24,6 +24,7 @@ set(core_BUILDCONFIGURATION "embedded")
 
 add_subdirectory(core)
 add_subdirectory(src/util)
+add_subdirectory(src/LED/gcem)
 
 set(INCLUDE_FILES
         src
@@ -31,6 +32,9 @@ set(INCLUDE_FILES
 
 set(Sources
         src/Application.cxx
+
+        src/LED/AddressableLedDriver.cxx
+        src/LED/LightController.cxx
 )
 
 # Instructs CMake to build your firmware
@@ -48,6 +52,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         core
         freertos
         util
+        gcem
 )
 
 # Sets up generation of .list and .bin files after your firmware has generated.
