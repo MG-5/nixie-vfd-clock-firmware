@@ -35,6 +35,8 @@ set(Sources
 
         src/LED/AddressableLedDriver.cxx
         src/LED/LightController.cxx
+
+        src/tube-control/TubeControl.cxx
 )
 
 # Instructs CMake to build your firmware
