@@ -3,36 +3,32 @@
 
 void TubeControl::taskMain(void *)
 {
+    // wait for steady voltages
     vTaskDelay(toOsTicks(100.0_ms));
-    enableBoostConverter.write(true);
-
+    tubes->setup();
     vTaskDelay(toOsTicks(100.0_ms));
 
-    uint8_t tubeIndex = 0;
-    uint8_t numberIndex = 0;
-    uint32_t timeCounter = 0;
+    // tubes->setClock(18, 42, 05);
+
+    uint16_t counter = 0;
+    uint8_t number = 0;
+    bool enableDots = false;
 
     while (1)
     {
-        for (auto &tube : tubeArray)
-            tube.write(false);
-
-        for (auto &digit : digitArray)
-            digit.write(false);
-
-        tubeArray[tubeIndex].write(true);
-        digitArray[numberIndex].write(true);
-
-        if (++tubeIndex >= 6)
-            tubeIndex = 0;
-
-        if (++timeCounter >= 1000)
-        {
-            timeCounter = 0;
-
-            if (++numberIndex >= 10)
-                numberIndex = 0;
-        }
+        tubes->multiplexingStep();
         vTaskDelay(toOsTicks(1.0_ms));
+
+        if (++counter >= 1000)
+        {
+            counter = 0;
+            if (++number >= 10)
+                number = 0;
+
+            const auto numberToShow = number * 10 + number;
+            tubes->setClock(numberToShow, numberToShow, numberToShow);
+            enableDots = !enableDots;
+            tubes->enableDots(enableDots);
+        }
     }
 }

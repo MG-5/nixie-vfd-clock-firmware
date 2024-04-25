@@ -1,0 +1,23 @@
+
+
+OpenDocument="stm32f1xx_it.c", FilePath="/home/mg/ARM/nixie-vfd-clock_firmware/cubemx/Core/Src/stm32f1xx_it.c", Line=76
+OpenDocument="core_cm3.h", FilePath="/home/mg/ARM/nixie-vfd-clock_firmware/cubemx/Drivers/CMSIS/Include/core_cm3.h", Line=1501
+OpenDocument="stm32f1xx_hal.c", FilePath="/home/mg/ARM/nixie-vfd-clock_firmware/cubemx/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c", Line=131
+OpenDocument="stm32f1xx_hal_timebase_tim.c", FilePath="/home/mg/ARM/nixie-vfd-clock_firmware/cubemx/Core/Src/stm32f1xx_hal_timebase_tim.c", Line=60
+OpenDocument="main.c", FilePath="/home/mg/ARM/nixie-vfd-clock_firmware/cubemx/Core/Src/main.c", Line=60
+OpenToolbar="Debug", Floating=0, x=0, y=0
+OpenWindow="Call Stack", DockArea=RIGHT, x=0, y=2, w=733, h=245, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Registers 1", DockArea=RIGHT, x=0, y=3, w=733, h=215, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, FilteredItems=[], RefreshRate=1
+OpenWindow="Disassembly", DockArea=RIGHT, x=0, y=0, w=733, h=163, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Memory 1", DockArea=BOTTOM, x=1, y=0, w=956, h=111, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, EditorAddress=0x2000276C
+OpenWindow="Local Data", DockArea=RIGHT, x=0, y=1, w=733, h=185, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Functions", DockArea=LEFT, x=0, y=0, w=450, h=826, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Console", DockArea=BOTTOM, x=0, y=0, w=958, h=111, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+SmartViewPlugin="", Page="", Toolbar="Hidden", Window="SmartView 1"
+TableHeader="Local Data", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Location";"Size";"Type";"Scope"], ColWidths=[321;281;100;100;238;100]
+TableHeader="Functions", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Address";"Size";"#Insts";"Source"], ColWidths=[2366;100;100;100;252]
+TableHeader="Power Sampling", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time";"Ch 0"], ColWidths=[100;100;100]
+TableHeader="Registers 1", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Description"], ColWidths=[100;118;515]
+TableHeader="RegisterSelectionDialog", SortCol="None", SortOrder="ASCENDING", VisibleCols=[], ColWidths=[]
+TableHeader="TargetExceptionDialog", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Address";"Description"], ColWidths=[200;100;100;359]
+TableHeader="Call Stack", SortCol="Function", SortOrder="ASCENDING", VisibleCols=["Function";"Stack Frame";"Source";"PC";"Return Address";"Stack Used"], ColWidths=[183;126;100;100;190;100]
