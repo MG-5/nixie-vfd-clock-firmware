@@ -6,6 +6,7 @@
 void VFD::setup()
 {
     // enableBoostConverter.write(true);
+    delayTimer.startTimer();
 
     heatwireEnable.write(true);
     vTaskDelay(toOsTicks(100.0_ms));
@@ -72,50 +73,34 @@ void VFD::enableDots(bool enable)
     shouldDotsLights = enable;
 }
 
-//--------------------------------------------------------------------------------------------------
-void VFD::sendSegmentBits(uint32_t bits)
+void VFD::clockPeriod()
 {
-    for (auto i = 0; i < 2; i++)
-    {
-        spiData.write(true);
+    spiClock.write(true);
+    delayTimer.delay187ns();
+    spiClock.write(false);
+    delayTimer.delay187ns();
+}
 
-        spiClock.write(true);
-        delay390ns();
-        spiClock.write(false);
-        delay390ns();
-    }
-
-    for (auto i = 0; i < 2; i++)
-    {
-        spiData.write(false);
-
-        spiClock.write(true);
-        delay390ns();
-        spiClock.write(false);
-        delay390ns();
-    }
-
-    for (auto i = 0; i < 16; i++)
-    {
-        spiData.write((bits >> i) & 1);
-
-        spiClock.write(true);
-        delay390ns();
-        spiClock.write(false);
-        delay390ns();
-    }
-
+void VFD::strobePeriod()
+{
     strobe.write(true);
-    delay390ns();
+    delayTimer.delay187ns();
     strobe.write(false);
-    delay390ns();
+    delayTimer.delay187ns();
 }
 
 //--------------------------------------------------------------------------------------------------
-void VFD::delay390ns()
+void VFD::sendSegmentBits(uint32_t bits)
 {
-    for (size_t i = 0; i < 50; i++)
+    bits <<= 4;        // make place for dots and commats bits
+    bits |= 0b11;      // dots are always enabled - will be switched by anode driver
+    bits &= ~(0b1100); // commatas are currenty disabled
+
+    for (auto i = 0; i < NumberBitsInShiftRegister; i++)
     {
-        asm("nop");
+        spiData.write((bits >> i) & 1);
+        clockPeriod();
     }
+
+    strobePeriod();
 }

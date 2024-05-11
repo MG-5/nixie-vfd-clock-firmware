@@ -3,8 +3,8 @@
 #include "task.h"
 
 #include "Application.hpp"
-#include "wrappers/Task.hpp"
 #include "core/SafeAssert.h"
+#include "wrappers/Task.hpp"
 
 #include <memory>
 
@@ -22,6 +22,14 @@ Application::Application()
     // Delegated Singleton, see getApplicationInstance() for further explanations
     SafeAssert(instance == nullptr);
     instance = this;
+
+    HAL_StatusTypeDef result = HAL_OK;
+
+    result = HAL_TIM_RegisterCallback(
+        MultiplexingPwmTimer, HAL_TIM_PERIOD_ELAPSED_CB_ID, [](TIM_HandleTypeDef *)
+        { getApplicationInstance().tubeControl.multiplexingTimerInterrupt(); });
+
+    SafeAssert(result == HAL_OK);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -50,7 +58,9 @@ HAL_StatusTypeDef Application::registerCallbacks()
     // SPI callback for addressable LEDs
     // result = HAL_SPI_RegisterCallback(LedSpiPeripherie, HAL_SPI_TX_COMPLETE_CB_ID,
     //                                [](SPI_HandleTypeDef *)
-    //                              { getApplicationInstance().lightController.notifySpiIsFinished(); });
+    //                              {
+    //                              getApplicationInstance().lightController.notifySpiIsFinished();
+    //                              });
 
     return result;
 }

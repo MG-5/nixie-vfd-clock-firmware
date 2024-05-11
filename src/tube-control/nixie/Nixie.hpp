@@ -2,9 +2,9 @@
 
 #include <array>
 
+#include "../AbstractTube.hpp"
 #include "main.h"
 #include "util/gpio.hpp"
-#include "AbstractTube.hpp"
 
 class Nixie : public AbstractTube
 {

@@ -2,42 +2,53 @@
 
 #include <array>
 
+#include "../AbstractTube.hpp"
+#include "DelayTimer.hpp"
 #include "main.h"
 #include "util/gpio.hpp"
-#include "AbstractTube.hpp"
 
 class VFD : public AbstractTube
 {
 public:
-    VFD() = default;
+    VFD(TIM_HandleTypeDef *delayTimerHandle) : delayTimer(delayTimerHandle){};
 
     // void notifySpiIsFinished();
+    void disableAll()
+    {
+        for (auto &tube : tubeArray)
+            tube.write(false);
+        dotsEnable.write(false);
+    }
 
 protected:
     void setup() override;
     void multiplexingStep() override;
+
     void enableDots(bool enable) override;
 
 private:
     // SPI_HandleTypeDef *spiPeripherie = nullptr;
 
+    static constexpr auto NumberBitsInShiftRegister = 20;
     bool shouldDotsLights = false;
 
     util::Gpio enableBoostConverter{Enable50V_190V_GPIO_Port, Enable50V_190V_Pin};
     util::Gpio heatwireEnable{Digit4_Heatwire_GPIO_Port, Digit4_Heatwire_Pin};
     util::Gpio dotsEnable{Dots_GPIO_Port, Dots_Pin};
 
-    std::array<util::Gpio, 6> tubeArray{
-        util::Gpio{Tube0_GPIO_Port, Tube0_Pin}, //
-        util::Gpio{Tube1_GPIO_Port, Tube1_Pin}, //
-        util::Gpio{Tube2_GPIO_Port, Tube2_Pin}, //
-        util::Gpio{Tube3_GPIO_Port, Tube3_Pin}, //
-        util::Gpio{Tube4_GPIO_Port, Tube4_Pin}, //
-        util::Gpio{Tube5_GPIO_Port, Tube5_Pin}};
+    std::array<util::Gpio, 6> tubeArray{util::Gpio{Tube0_GPIO_Port, Tube0_Pin}, //
+                                        util::Gpio{Tube1_GPIO_Port, Tube1_Pin}, //
+                                        util::Gpio{Tube2_GPIO_Port, Tube2_Pin}, //
+                                        util::Gpio{Tube3_GPIO_Port, Tube3_Pin}, //
+                                        util::Gpio{Tube4_GPIO_Port, Tube4_Pin}, //
+                                        util::Gpio{Tube5_GPIO_Port, Tube5_Pin}};
 
     util::Gpio strobe{Digit3_Strobe_GPIO_Port, Digit3_Strobe_Pin};
-    util::Gpio enableBus{Digit1_EnableBusShiftRegister_GPIO_Port, Digit1_EnableBusShiftRegister_Pin};
+    util::Gpio enableBus{Digit1_EnableBusShiftRegister_GPIO_Port,
+                         Digit1_EnableBusShiftRegister_Pin};
 
+    void clockPeriod();
+    void strobePeriod();
     void sendSegmentBits(uint32_t bits);
 
     std::array<uint32_t, 10> numberSegments{
@@ -53,8 +64,9 @@ private:
         0b1111110111000000  // 9
     };
 
+    DelayTimer delayTimer;
+
     // temporialy
     util::Gpio spiData{GPIOB, GPIO_PIN_15};
     util::Gpio spiClock{GPIOB, GPIO_PIN_13};
-    void delay390ns();
 };

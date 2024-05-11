@@ -37,8 +37,8 @@ set(Sources
         #src/LED/LightController.cxx
 
         src/tube-control/TubeControl.cxx
-        src/tube-control/Nixie.cxx
-        src/tube-control/VFD.cxx
+        src/tube-control/nixie/Nixie.cxx
+        src/tube-control/vfd/VFD.cxx
 )
 
 # Instructs CMake to build your firmware

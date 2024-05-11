@@ -1,6 +1,7 @@
 #pragma once
 
 // #include "spi.h"
+#include "tim.h"
 
 // #include "LED/LightController.hpp"
 #include "tube-control/TubeControl.hpp"
@@ -19,10 +20,15 @@ public:
     // TODO Add SpiAccessor
 
     // LightController lightController{LedSpiPeripherie};
-    TubeControl tubeControl{};
 
 private:
     static inline Application *instance{nullptr};
 
     HAL_StatusTypeDef registerCallbacks();
+
+    static constexpr auto DelayTimer = &htim1;
+    static constexpr auto MultiplexingPwmTimer = &htim3;
+    static constexpr auto PwmTimer = &htim3;
+
+    TubeControl tubeControl{MultiplexingPwmTimer, DelayTimer};
 };

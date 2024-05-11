@@ -2,23 +2,33 @@
 
 #include "main.h"
 
-#include "wrappers/Task.hpp"
 #include "util/gpio.hpp"
+#include "wrappers/Task.hpp"
 
 #include "AbstractTube.hpp"
-#include "Nixie.hpp"
-#include "VFD.hpp"
+#include "nixie/Nixie.hpp"
+#include "vfd/VFD.hpp"
 
 class TubeControl : public util::wrappers::TaskWithMemberFunctionBase
 {
 public:
-    TubeControl() : TaskWithMemberFunctionBase("tubeControlTask", 256, osPriorityRealtime5){};
+    TubeControl(TIM_HandleTypeDef *multiplexingPwmTimer, TIM_HandleTypeDef *delayTimer)
+        : TaskWithMemberFunctionBase("tubeControlTask", 256, osPriorityRealtime5), //
+          multiplexingPwmTimer(multiplexingPwmTimer),                              //
+          delayTimer(delayTimer){};
+
+    void multiplexingTimerInterrupt();
 
 protected:
     void taskMain(void *) override;
 
 private:
+    TIM_HandleTypeDef *multiplexingPwmTimer;
+    TIM_HandleTypeDef *delayTimer;
+
     // Nixie nixieTubes{};
-    VFD vfdTubes{};
+    VFD vfdTubes{delayTimer};
     AbstractTube *tubes = &vfdTubes; //&nixieTubes;
+
+    static constexpr auto MultiplexingTimeout = 5.0_ms;
 };
