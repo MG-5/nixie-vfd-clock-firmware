@@ -18,30 +18,20 @@ void TubeControl::taskMain(void *)
 
     HAL_TIM_Base_Start_IT(multiplexingPwmTimer);
 
-    // HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
-    // __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_3, 120);
+    HAL_TIM_OC_Start_IT(multiplexingPwmTimer, TIM_CHANNEL_4);
 
-    size_t pwmCounter = 0;
-    size_t pwmThreshold = 0;
-    constexpr auto PwmMaximum = 5;
+    constexpr auto PwmMinimum = 50;
+    __HAL_TIM_SetCompare(multiplexingPwmTimer, TIM_CHANNEL_4, 125);
 
     while (1)
     {
         notifyTake(toOsTicks(MultiplexingTimeout));
 
-        if (++pwmCounter >= pwmThreshold)
-            tubes->multiplexingStep();
-        else
-            vfdTubes.disableAll();
+        tubes->multiplexingStep();
 
-        if (pwmCounter >= PwmMaximum)
-            pwmCounter = 0;
-
-        constexpr auto NumberStepsForOneSecond = (1.0_s / 125.0_us).getMagnitude<size_t>();
+        constexpr auto NumberStepsForOneSecond = (1.0_s / 250.0_us).getMagnitude<size_t>();
         if (++counter >= NumberStepsForOneSecond)
         {
-            if (++pwmThreshold > PwmMaximum)
-                pwmThreshold = 0;
 
             counter = 0;
             if (++number >= 10)
@@ -58,10 +48,16 @@ void TubeControl::taskMain(void *)
 //--------------------------------------------------------------------------------------------------
 void TubeControl::multiplexingTimerInterrupt()
 {
-    // APB1 = 32MHz -> 1MHz = 1µs -> prescaler 32-1
-    // auto reload period = 124 -> interrupt every 125µs
+    // APB2 = 64MHz -> 1MHz = 1µs -> prescaler 64-1
+    // auto reload period = 249 -> interrupt every 250µs
 
     auto higherPriorityTaskWoken = pdFALSE;
     notifyFromISR(1, util::wrappers::NotifyAction::SetBits, &higherPriorityTaskWoken);
     portYIELD_FROM_ISR(higherPriorityTaskWoken);
+}
+
+//--------------------------------------------------------------------------------------------------
+void TubeControl::pwmTimerInterrupt()
+{
+    tubes->disableAllTubes();
 }

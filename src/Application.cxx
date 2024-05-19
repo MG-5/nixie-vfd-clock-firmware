@@ -1,5 +1,6 @@
 #include "FreeRTOS.h"
 #include "main.h"
+#include "stm32f1xx_hal_tim.h"
 #include "task.h"
 
 #include "Application.hpp"
@@ -23,13 +24,7 @@ Application::Application()
     SafeAssert(instance == nullptr);
     instance = this;
 
-    HAL_StatusTypeDef result = HAL_OK;
-
-    result = HAL_TIM_RegisterCallback(
-        MultiplexingPwmTimer, HAL_TIM_PERIOD_ELAPSED_CB_ID, [](TIM_HandleTypeDef *)
-        { getApplicationInstance().tubeControl.multiplexingTimerInterrupt(); });
-
-    SafeAssert(result == HAL_OK);
+    registerCallbacks();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -51,9 +46,11 @@ Application &Application::getApplicationInstance()
 }
 
 //--------------------------------------------------------------------------------------------------
-HAL_StatusTypeDef Application::registerCallbacks()
+void Application::registerCallbacks()
 {
     HAL_StatusTypeDef result = HAL_OK;
+
+    SafeAssert(result == HAL_OK);
 
     // SPI callback for addressable LEDs
     // result = HAL_SPI_RegisterCallback(LedSpiPeripherie, HAL_SPI_TX_COMPLETE_CB_ID,
@@ -61,6 +58,30 @@ HAL_StatusTypeDef Application::registerCallbacks()
     //                              {
     //                              getApplicationInstance().lightController.notifySpiIsFinished();
     //                              });
+}
 
-    return result;
+//--------------------------------------------------------------------------------------------------
+void Application::multiplexingTimerUpdate()
+{
+    getApplicationInstance().tubeControl.multiplexingTimerInterrupt();
+}
+
+//--------------------------------------------------------------------------------------------------
+void Application::pwmTimerCompare()
+{
+    getApplicationInstance().tubeControl.pwmTimerInterrupt();
+}
+
+//--------------------------------------------------------------------------------------------------
+// skip HAL`s interupt routine to get more performance
+extern "C" void TIM1_UP_IRQHandler(void)
+{
+    __HAL_TIM_CLEAR_IT(Application::MultiplexingPwmTimer, TIM_IT_UPDATE);
+    Application::multiplexingTimerUpdate();
+}
+
+extern "C" void TIM1_CC_IRQHandler(void)
+{
+    __HAL_TIM_CLEAR_IT(Application::MultiplexingPwmTimer, TIM_IT_CC4);
+    Application::pwmTimerCompare();
 }

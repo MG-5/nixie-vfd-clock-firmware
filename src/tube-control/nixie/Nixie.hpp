@@ -15,6 +15,7 @@ protected:
     void setup() override;
     void multiplexingStep() override;
     void enableDots(bool enable) override;
+    void disableAllTubes() override;
 
 private:
     util::Gpio enableBoostConverter{Enable50V_190V_GPIO_Port, Enable50V_190V_Pin};

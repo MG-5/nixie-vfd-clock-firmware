@@ -18,6 +18,7 @@ public:
           delayTimer(delayTimer){};
 
     void multiplexingTimerInterrupt();
+    void pwmTimerInterrupt();
 
 protected:
     void taskMain(void *) override;

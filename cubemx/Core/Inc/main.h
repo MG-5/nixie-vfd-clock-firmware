@@ -83,8 +83,6 @@ void Error_Handler(void);
 #define Digit6_GPIO_Port GPIOA
 #define Digit7_Pin GPIO_PIN_7
 #define Digit7_GPIO_Port GPIOA
-#define PwmOutput_Pin GPIO_PIN_1
-#define PwmOutput_GPIO_Port GPIOB
 #define Tube0_Pin GPIO_PIN_10
 #define Tube0_GPIO_Port GPIOB
 #define Tube1_Pin GPIO_PIN_11

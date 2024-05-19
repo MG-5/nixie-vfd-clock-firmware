@@ -21,9 +21,7 @@ void VFD::multiplexingStep()
 {
     static uint8_t tubeIndex = 0;
 
-    for (auto &tube : tubeArray)
-        tube.write(false);
-    dotsEnable.write(false);
+    disableAllTubes();
 
     uint8_t numberToShow = 0;
 
@@ -68,11 +66,21 @@ void VFD::multiplexingStep()
 }
 
 //--------------------------------------------------------------------------------------------------
+inline void VFD::disableAllTubes()
+{
+    for (auto &tube : tubeArray)
+        tube.write(false);
+
+    dotsEnable.write(false); // directly disable dot anodes
+}
+
+//--------------------------------------------------------------------------------------------------
 void VFD::enableDots(bool enable)
 {
     shouldDotsLights = enable;
 }
 
+//--------------------------------------------------------------------------------------------------
 void VFD::clockPeriod()
 {
     spiClock.write(true);
@@ -81,6 +89,7 @@ void VFD::clockPeriod()
     delayTimer.delay187ns();
 }
 
+//--------------------------------------------------------------------------------------------------
 void VFD::strobePeriod()
 {
     strobe.write(true);

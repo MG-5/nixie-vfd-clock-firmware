@@ -18,10 +18,10 @@ public:
 
     virtual void enableDots(bool enable) = 0;
 
+    virtual void disableAllTubes() = 0;
+
     // all six digits (HH:MM:SS)
-    void setClock(uint8_t hours,
-                  uint8_t minutes,
-                  uint8_t seconds)
+    void setClock(uint8_t hours, uint8_t minutes, uint8_t seconds)
     {
         this->hours = hours;
         this->minutes = minutes;

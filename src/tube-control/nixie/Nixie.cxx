@@ -60,3 +60,12 @@ void Nixie::enableDots(bool enable)
 {
     dotsEnable.write(enable);
 }
+
+//--------------------------------------------------------------------------------------------------
+void Nixie::disableAllTubes()
+{
+    for (auto &tube : tubeArray)
+        tube.write(false);
+
+    // enableDots(false);
+}

@@ -2,7 +2,7 @@
 
 #include "tim.h"
 
-// APB2= 64MHz -> prescaler = 4-1 -> 16MHz -> 62,5ns
+// APB1= 32MHz -> prescaler = 2-1 -> 16MHz -> 62,5ns
 class DelayTimer
 {
 public:

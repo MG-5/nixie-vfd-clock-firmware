@@ -13,12 +13,7 @@ public:
     VFD(TIM_HandleTypeDef *delayTimerHandle) : delayTimer(delayTimerHandle){};
 
     // void notifySpiIsFinished();
-    void disableAll()
-    {
-        for (auto &tube : tubeArray)
-            tube.write(false);
-        dotsEnable.write(false);
-    }
+    void disableAllTubes() override;
 
 protected:
     void setup() override;

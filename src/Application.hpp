@@ -11,10 +11,16 @@
 class Application
 {
 public:
+    static constexpr auto DelayTimer = &htim2;
+    static constexpr auto MultiplexingPwmTimer = &htim1;
+
     Application();
     [[noreturn]] void run();
 
     static Application &getApplicationInstance();
+
+    static void multiplexingTimerUpdate();
+    static void pwmTimerCompare();
 
     // static constexpr auto LedSpiPeripherie = &hspi2;
     // TODO Add SpiAccessor
@@ -24,11 +30,7 @@ public:
 private:
     static inline Application *instance{nullptr};
 
-    HAL_StatusTypeDef registerCallbacks();
-
-    static constexpr auto DelayTimer = &htim1;
-    static constexpr auto MultiplexingPwmTimer = &htim3;
-    static constexpr auto PwmTimer = &htim3;
+    void registerCallbacks();
 
     TubeControl tubeControl{MultiplexingPwmTimer, DelayTimer};
 };
