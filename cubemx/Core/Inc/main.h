@@ -91,10 +91,10 @@ void Error_Handler(void);
 #define Tube2_GPIO_Port GPIOB
 #define Tube4_Pin GPIO_PIN_14
 #define Tube4_GPIO_Port GPIOB
-#define Digit8_Pin GPIO_PIN_8
-#define Digit8_GPIO_Port GPIOA
-#define Digit9_Pin GPIO_PIN_9
-#define Digit9_GPIO_Port GPIOA
+#define Digit8_SR_CLK_Pin GPIO_PIN_8
+#define Digit8_SR_CLK_GPIO_Port GPIOA
+#define Digit9_SR_Data_Pin GPIO_PIN_9
+#define Digit9_SR_Data_GPIO_Port GPIOA
 #define LeftComma_Pin GPIO_PIN_4
 #define LeftComma_GPIO_Port GPIOB
 #define RightComma_Pin GPIO_PIN_5

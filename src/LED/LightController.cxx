@@ -11,6 +11,10 @@ using util::wrappers::NotifyAction;
 
 [[noreturn]] void LightController::taskMain(void *)
 {
+    // TODO: this GPIO is only for VFD until the AND-gatter is soldered out, otherwise there will be
+    // a conflict with nixie tubes
+    enableSpiARGB.write(true);
+
     while (true)
     {
         updateLightState();

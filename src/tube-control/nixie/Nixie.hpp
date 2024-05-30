@@ -41,7 +41,7 @@ private:
         util::Gpio{Digit5_GPIO_Port, Digit5_Pin},                                               //
         util::Gpio{Digit6_GPIO_Port, Digit6_Pin},                                               //
         util::Gpio{Digit7_GPIO_Port, Digit7_Pin},                                               //
-        util::Gpio{Digit8_GPIO_Port, Digit8_Pin},                                               //
-        util::Gpio{Digit9_GPIO_Port, Digit9_Pin}                                                //
+        util::Gpio{Digit8_SR_CLK_GPIO_Port, Digit8_SR_CLK_Pin},                                 //
+        util::Gpio{Digit9_SR_Data_GPIO_Port, Digit9_SR_Data_Pin}                                //
     };
 };

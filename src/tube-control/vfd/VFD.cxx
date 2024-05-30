@@ -11,9 +11,8 @@ void VFD::setup()
     heatwireEnable.write(true);
     vTaskDelay(toOsTicks(100.0_ms));
 
-    spiClock.write(false);
-    spiData.write(false);
-    enableBus.write(true);
+    shiftRegisterClock.write(false);
+    shiftRegisterData.write(false);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -83,9 +82,9 @@ void VFD::enableDots(bool enable)
 //--------------------------------------------------------------------------------------------------
 void VFD::clockPeriod()
 {
-    spiClock.write(true);
+    shiftRegisterClock.write(true);
     delayTimer.delay187ns();
-    spiClock.write(false);
+    shiftRegisterClock.write(false);
     delayTimer.delay187ns();
 }
 
@@ -107,7 +106,7 @@ void VFD::sendSegmentBits(uint32_t bits)
 
     for (auto i = 0; i < NumberBitsInShiftRegister; i++)
     {
-        spiData.write((bits >> i) & 1);
+        shiftRegisterData.write((bits >> i) & 1);
         clockPeriod();
     }
 

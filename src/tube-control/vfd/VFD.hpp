@@ -39,14 +39,12 @@ private:
                                         util::Gpio{Tube5_GPIO_Port, Tube5_Pin}};
 
     util::Gpio strobe{Digit3_Strobe_GPIO_Port, Digit3_Strobe_Pin};
-    util::Gpio enableBus{Digit1_EnableBusShiftRegister_GPIO_Port,
-                         Digit1_EnableBusShiftRegister_Pin};
 
     void clockPeriod();
     void strobePeriod();
     void sendSegmentBits(uint32_t bits);
 
-    std::array<uint32_t, 10> numberSegments{
+    static constexpr std::array<uint32_t, 10> numberSegments{
         0b1111111100001001, // 0
         0b0000000000010010, // 1
         0b1110111011000000, // 2
@@ -61,7 +59,6 @@ private:
 
     DelayTimer delayTimer;
 
-    // temporialy
-    util::Gpio spiData{GPIOB, GPIO_PIN_15};
-    util::Gpio spiClock{GPIOB, GPIO_PIN_13};
+    util::Gpio shiftRegisterData{Digit9_SR_Data_GPIO_Port, Digit9_SR_Data_Pin};
+    util::Gpio shiftRegisterClock{Digit8_SR_CLK_GPIO_Port, Digit8_SR_CLK_Pin};
 };

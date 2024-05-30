@@ -33,8 +33,8 @@ set(INCLUDE_FILES
 set(Sources
         src/Application.cxx
 
-        #src/LED/AddressableLedDriver.cxx
-        #src/LED/LightController.cxx
+        src/LED/AddressableLedDriver.cxx
+        src/LED/LightController.cxx
 
         src/tube-control/TubeControl.cxx
         src/tube-control/nixie/Nixie.cxx

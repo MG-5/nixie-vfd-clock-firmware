@@ -5,6 +5,8 @@
 #include "animations/LedAnimationBase.hpp"
 #include "animations/RainbowAnimation.hpp"
 
+#include "main.h"
+#include "util/gpio.hpp"
 #include "wrappers/Task.hpp"
 #include <array>
 
@@ -30,6 +32,10 @@ private:
 
     RainbowAnimation rainbowAnimation{ledSegmentArray};
     LedAnimationBase *targetAnimation{&rainbowAnimation};
+
+    // TODO: this GPIO is only for VFD until the AND-gatter is soldered out, otherwise there will be
+    // a conflict with nixie tubes
+    util::Gpio enableSpiARGB{Digit0_EnableBusARGB_GPIO_Port, Digit0_EnableBusARGB_Pin};
 
     void updateLightState();
 };

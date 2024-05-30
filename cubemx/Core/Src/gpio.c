@@ -61,12 +61,11 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, Digit0_EnableBusARGB_Pin|Digit1_EnableBusShiftRegister_Pin|Digit2_Blanking_Pin|Digit3_Strobe_Pin
                           |Digit4_Heatwire_Pin|Digit5_Pin|Digit6_Pin|Digit7_Pin
-                          |Digit8_Pin|Digit9_Pin, GPIO_PIN_RESET);
+                          |Digit8_SR_CLK_Pin|Digit9_SR_Data_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1|Tube0_Pin|Tube1_Pin|Tube2_Pin
-                          |GPIO_PIN_13|Tube4_Pin|GPIO_PIN_15|LeftComma_Pin
-                          |RightComma_Pin, GPIO_PIN_RESET);
+                          |Tube4_Pin|LeftComma_Pin|RightComma_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : PCPin PCPin */
   GPIO_InitStruct.Pin = Enable50V_190V_Pin|Dots_Pin;
@@ -93,18 +92,16 @@ void MX_GPIO_Init(void)
                            PAPin PAPin */
   GPIO_InitStruct.Pin = Digit0_EnableBusARGB_Pin|Digit1_EnableBusShiftRegister_Pin|Digit2_Blanking_Pin|Digit3_Strobe_Pin
                           |Digit4_Heatwire_Pin|Digit5_Pin|Digit6_Pin|Digit7_Pin
-                          |Digit8_Pin|Digit9_Pin;
+                          |Digit8_SR_CLK_Pin|Digit9_SR_Data_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PB1 PBPin PBPin PBPin
-                           PB13 PBPin PB15 PBPin
-                           PBPin */
+                           PBPin PBPin PBPin */
   GPIO_InitStruct.Pin = GPIO_PIN_1|Tube0_Pin|Tube1_Pin|Tube2_Pin
-                          |GPIO_PIN_13|Tube4_Pin|GPIO_PIN_15|LeftComma_Pin
-                          |RightComma_Pin;
+                          |Tube4_Pin|LeftComma_Pin|RightComma_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

@@ -13,8 +13,6 @@ inline void AddressableLedDriver::sendStartFrame()
 {
     uint32_t startFrame = 0;
 
-    // TODO enable Buffer
-
     HAL_StatusTypeDef result = //
         HAL_SPI_Transmit_DMA(spiPeripherie, reinterpret_cast<uint8_t *>(&startFrame),
                              sizeof(startFrame));
@@ -39,8 +37,6 @@ inline void AddressableLedDriver::convertToGammaCorrectedColors(LedSegmentArray 
 //--------------------------------------------------------------------------------------------------
 void AddressableLedDriver::sendBuffer(LedSegmentArray &ledSegmentArray)
 {
-    // TODO enable Buffer
-
     convertToGammaCorrectedColors(ledSegmentArray, ledSpiData);
     sendStartFrame();
 
