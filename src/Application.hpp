@@ -14,6 +14,7 @@ public:
     static constexpr auto DelayTimer = &htim2;
     static constexpr auto MultiplexingPwmTimer = &htim1;
     static constexpr auto LedSpiPeripherie = &hspi2;
+    static constexpr auto PwmTimChannel = TIM_CHANNEL_4;
 
     Application();
     [[noreturn]] void run();
@@ -28,6 +29,6 @@ private:
 
     void registerCallbacks();
 
-    TubeControl tubeControl{MultiplexingPwmTimer, DelayTimer};
+    TubeControl tubeControl{MultiplexingPwmTimer, DelayTimer, PwmTimChannel};
     LightController lightController{LedSpiPeripherie};
 };

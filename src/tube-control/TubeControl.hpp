@@ -12,10 +12,12 @@
 class TubeControl : public util::wrappers::TaskWithMemberFunctionBase
 {
 public:
-    TubeControl(TIM_HandleTypeDef *multiplexingPwmTimer, TIM_HandleTypeDef *delayTimer)
+    TubeControl(TIM_HandleTypeDef *multiplexingPwmTimer, TIM_HandleTypeDef *delayTimer,
+                uint32_t pwmTimChannel)
         : TaskWithMemberFunctionBase("tubeControlTask", 256, osPriorityRealtime5), //
           multiplexingPwmTimer(multiplexingPwmTimer),                              //
-          delayTimer(delayTimer){};
+          delayTimer(delayTimer),                                                  //
+          pwmTimChannel(pwmTimChannel){};
 
     void multiplexingTimerInterrupt();
     void pwmTimerInterrupt();
@@ -26,6 +28,7 @@ protected:
 private:
     TIM_HandleTypeDef *multiplexingPwmTimer;
     TIM_HandleTypeDef *delayTimer;
+    uint32_t pwmTimChannel;
 
     // Nixie nixieTubes{};
     VFD vfdTubes{delayTimer};

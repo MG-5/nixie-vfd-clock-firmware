@@ -17,11 +17,11 @@ void TubeControl::taskMain(void *)
     bool enableDots = false;
 
     HAL_TIM_Base_Start_IT(multiplexingPwmTimer);
-
-    HAL_TIM_OC_Start_IT(multiplexingPwmTimer, TIM_CHANNEL_4);
+    HAL_TIM_OC_Start_IT(multiplexingPwmTimer, pwmTimChannel);
 
     constexpr auto PwmMinimum = 50;
-    __HAL_TIM_SetCompare(multiplexingPwmTimer, TIM_CHANNEL_4, 125);
+    constexpr auto PwmMaximum = 249;
+    __HAL_TIM_SetCompare(multiplexingPwmTimer, pwmTimChannel, PwmMaximum);
 
     while (1)
     {
