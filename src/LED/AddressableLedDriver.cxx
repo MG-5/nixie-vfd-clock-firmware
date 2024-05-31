@@ -14,8 +14,8 @@ inline void AddressableLedDriver::sendStartFrame()
     uint32_t startFrame = 0;
 
     HAL_StatusTypeDef result = //
-        HAL_SPI_Transmit_DMA(spiPeripherie, reinterpret_cast<uint8_t *>(&startFrame),
-                             sizeof(startFrame));
+        HAL_SPI_Transmit_IT(spiPeripherie, reinterpret_cast<uint8_t *>(&startFrame),
+                            sizeof(startFrame));
 
     ulTaskNotifyTake(pdTRUE, toOsTicks(Timeout));
 
@@ -42,11 +42,11 @@ void AddressableLedDriver::sendBuffer(LedSegmentArray &ledSegmentArray)
 
     HAL_StatusTypeDef result = HAL_OK;
 
-    result = HAL_SPI_Transmit_DMA(spiPeripherie, reinterpret_cast<uint8_t *>(ledSpiData.data()),
-                                  ledSpiData.size() * sizeof(LedSpiData));
+    result = HAL_SPI_Transmit_IT(spiPeripherie, reinterpret_cast<uint8_t *>(ledSpiData.data()),
+                                 ledSpiData.size() * sizeof(LedSpiData));
     ulTaskNotifyTake(pdTRUE, toOsTicks(Timeout));
 
-    result = HAL_SPI_Transmit_DMA(spiPeripherie, endFrames.data(), NumberOfEndFrames);
+    result = HAL_SPI_Transmit_IT(spiPeripherie, endFrames.data(), NumberOfEndFrames);
     ulTaskNotifyTake(pdTRUE, toOsTicks(Timeout));
     if (result != HAL_OK)
     {
