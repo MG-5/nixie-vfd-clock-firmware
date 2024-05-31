@@ -17,7 +17,17 @@ public:
         : TaskWithMemberFunctionBase("tubeControlTask", 256, osPriorityRealtime5), //
           multiplexingPwmTimer(multiplexingPwmTimer),                              //
           delayTimer(delayTimer),                                                  //
-          pwmTimChannel(pwmTimChannel){};
+          pwmTimChannel(pwmTimChannel)
+    {
+        // TODO: replace it with solder pad
+        bool isNixieClock = false;
+
+        if (isNixieClock)
+            tubes = new Nixie();
+
+        else
+            tubes = new VFD(delayTimer);
+    };
 
     void multiplexingTimerInterrupt();
     void pwmTimerInterrupt();
@@ -30,9 +40,7 @@ private:
     TIM_HandleTypeDef *delayTimer;
     uint32_t pwmTimChannel;
 
-    // Nixie nixieTubes{};
-    VFD vfdTubes{delayTimer};
-    AbstractTube *tubes = &vfdTubes; //&nixieTubes;
+    AbstractTube *tubes = nullptr;
 
     static constexpr auto MultiplexingTimeout = 5.0_ms;
 };
