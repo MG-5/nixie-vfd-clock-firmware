@@ -4,6 +4,8 @@
 #include "tim.h"
 
 #include "LED/LightController.hpp"
+#include "clock/Clock.hpp"
+#include "helpers/freertos.hpp"
 #include "tube-control/TubeControl.hpp"
 
 /// The entry point of users C++ firmware. This comes after CubeHAL and FreeRTOS initialization.
@@ -23,6 +25,7 @@ public:
 
     static void multiplexingTimerUpdate();
     static void pwmTimerCompare();
+    static void clockSecondTimeout(TimerHandle_t);
 
 private:
     static inline Application *instance{nullptr};
@@ -31,4 +34,9 @@ private:
 
     TubeControl tubeControl{MultiplexingPwmTimer, DelayTimer, PwmTimChannel};
     LightController lightController{LedSpiPeripherie};
+
+    TimerHandle_t timerTimeoutHandle =
+        xTimerCreate("timeoutTimer", toOsTicks(2.0_s), pdFALSE, (void *)0, clockSecondTimeout);
+
+    Clock clock{timerTimeoutHandle, tubeControl};
 };

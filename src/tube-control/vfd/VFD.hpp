@@ -25,7 +25,7 @@ private:
     // SPI_HandleTypeDef *spiPeripherie = nullptr;
 
     static constexpr auto NumberBitsInShiftRegister = 20;
-    bool shouldDotsLights = false;
+    bool shouldDotsLights = true;
 
     util::Gpio enableBoostConverter{Enable50V_190V_GPIO_Port, Enable50V_190V_Pin};
     util::Gpio heatwireEnable{Digit4_Heatwire_GPIO_Port, Digit4_Heatwire_Pin};

@@ -33,6 +33,8 @@ set(INCLUDE_FILES
 set(Sources
         src/Application.cxx
 
+        src/clock/Clock.cxx
+
         src/LED/AddressableLedDriver.cxx
         src/LED/LightController.cxx
 

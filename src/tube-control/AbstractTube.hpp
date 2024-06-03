@@ -20,16 +20,19 @@ public:
 
     virtual void disableAllTubes() = 0;
 
-    // all six digits (HH:MM:SS)
-    void setClock(uint8_t hours, uint8_t minutes, uint8_t seconds)
+    struct Clock_t
     {
-        this->hours = hours;
-        this->minutes = minutes;
-        this->seconds = seconds;
+        uint8_t hours = 0;
+        uint8_t minutes = 0;
+        uint8_t seconds = 0;
+    };
+
+    // all six digits (HH:MM:SS)
+    void setClock(Clock_t clockTime)
+    {
+        this->clockTime = clockTime;
     }
 
 protected:
-    uint8_t hours = 0;
-    uint8_t minutes = 0;
-    uint8_t seconds = 0;
+    Clock_t clockTime;
 };

@@ -27,27 +27,27 @@ void VFD::multiplexingStep()
     switch (tubeIndex)
     {
     case 0:
-        numberToShow = hours / 10;
+        numberToShow = clockTime.hours / 10;
         break;
 
     case 1:
-        numberToShow = hours % 10;
+        numberToShow = clockTime.hours % 10;
         break;
 
     case 2:
-        numberToShow = minutes / 10;
+        numberToShow = clockTime.minutes / 10;
         break;
 
     case 3:
-        numberToShow = minutes % 10;
+        numberToShow = clockTime.minutes % 10;
         break;
 
     case 4:
-        numberToShow = seconds / 10;
+        numberToShow = clockTime.seconds / 10;
         break;
 
     case 5:
-        numberToShow = seconds % 10;
+        numberToShow = clockTime.seconds % 10;
         break;
 
     default:

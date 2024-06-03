@@ -28,21 +28,14 @@ void TubeControl::taskMain(void *)
         notifyTake(toOsTicks(MultiplexingTimeout));
 
         tubes->multiplexingStep();
-
-        constexpr auto NumberStepsForOneSecond = (1.0_s / 250.0_us).getMagnitude<size_t>();
-        if (++counter >= NumberStepsForOneSecond)
-        {
-
-            counter = 0;
-            if (++number >= 10)
-                number = 0;
-
-            const auto numberToShow = number * 10 + number;
-            tubes->setClock(numberToShow, numberToShow, numberToShow);
-            enableDots = !enableDots;
-            tubes->enableDots(enableDots);
-        }
     }
+}
+
+//--------------------------------------------------------------------------------------------------
+void TubeControl::setClock(AbstractTube::Clock_t clockTime)
+{
+    tubes->setClock(clockTime);
+    tubes->enableDots(clockTime.seconds % 2 == 0);
 }
 
 //--------------------------------------------------------------------------------------------------

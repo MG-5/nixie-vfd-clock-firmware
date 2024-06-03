@@ -3,6 +3,7 @@
 void Nixie::setup()
 {
     enableBoostConverter.write(true);
+    enableDots(true);
 
     // leftComma.write(true);
     // rightComma.write(true);
@@ -24,27 +25,27 @@ void Nixie::multiplexingStep()
     switch (tubeIndex)
     {
     case 0:
-        digitArray[hours / 10].write(true);
+        digitArray[clockTime.hours / 10].write(true);
         break;
 
     case 1:
-        digitArray[hours % 10].write(true);
+        digitArray[clockTime.hours % 10].write(true);
         break;
 
     case 2:
-        digitArray[minutes / 10].write(true);
+        digitArray[clockTime.minutes / 10].write(true);
         break;
 
     case 3:
-        digitArray[minutes % 10].write(true);
+        digitArray[clockTime.minutes % 10].write(true);
         break;
 
     case 4:
-        digitArray[seconds / 10].write(true);
+        digitArray[clockTime.seconds / 10].write(true);
         break;
 
     case 5:
-        digitArray[seconds % 10].write(true);
+        digitArray[clockTime.seconds % 10].write(true);
         break;
 
     default:

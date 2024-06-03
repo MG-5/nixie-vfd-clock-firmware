@@ -32,6 +32,8 @@ public:
     void multiplexingTimerInterrupt();
     void pwmTimerInterrupt();
 
+    void setClock(AbstractTube::Clock_t clockTime);
+
 protected:
     void taskMain(void *) override;
 

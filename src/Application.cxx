@@ -70,6 +70,11 @@ void Application::pwmTimerCompare()
     getApplicationInstance().tubeControl.pwmTimerInterrupt();
 }
 
+void Application::clockSecondTimeout(TimerHandle_t)
+{
+    getApplicationInstance().clock.timeoutInterrupt();
+}
+
 //--------------------------------------------------------------------------------------------------
 // skip HAL`s interupt routine to get more performance
 extern "C" void TIM1_UP_IRQHandler(void)
