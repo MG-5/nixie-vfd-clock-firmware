@@ -19,8 +19,7 @@ public:
           delayTimer(delayTimer),                                                  //
           pwmTimChannel(pwmTimChannel)
     {
-        // TODO: replace it with solder pad
-        bool isNixieClock = false;
+        bool isNixieClock = selectGpio.read();
 
         if (isNixieClock)
             tubes = new Nixie();
@@ -43,6 +42,7 @@ private:
     uint32_t pwmTimChannel;
 
     AbstractTube *tubes = nullptr;
+    util::Gpio selectGpio{NixieVfdSelect_GPIO_Port, NixieVfdSelect_Pin};
 
     static constexpr auto MultiplexingTimeout = 5.0_ms;
 };

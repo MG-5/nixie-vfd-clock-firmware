@@ -67,10 +67,10 @@ void Error_Handler(void);
 #define Tube3_GPIO_Port GPIOD
 #define Tube5_Pin GPIO_PIN_1
 #define Tube5_GPIO_Port GPIOD
-#define Digit0_EnableBusARGB_Pin GPIO_PIN_0
-#define Digit0_EnableBusARGB_GPIO_Port GPIOA
-#define Digit1_EnableBusShiftRegister_Pin GPIO_PIN_1
-#define Digit1_EnableBusShiftRegister_GPIO_Port GPIOA
+#define Digit0_Pin GPIO_PIN_0
+#define Digit0_GPIO_Port GPIOA
+#define Digit1_Pin GPIO_PIN_1
+#define Digit1_GPIO_Port GPIOA
 #define Digit2_Blanking_Pin GPIO_PIN_2
 #define Digit2_Blanking_GPIO_Port GPIOA
 #define Digit3_Strobe_Pin GPIO_PIN_3
@@ -83,6 +83,12 @@ void Error_Handler(void);
 #define Digit6_GPIO_Port GPIOA
 #define Digit7_Pin GPIO_PIN_7
 #define Digit7_GPIO_Port GPIOA
+#define VoltageADC_Pin GPIO_PIN_0
+#define VoltageADC_GPIO_Port GPIOB
+#define EnableOctalBuffer_Pin GPIO_PIN_1
+#define EnableOctalBuffer_GPIO_Port GPIOB
+#define NixieVfdSelect_Pin GPIO_PIN_2
+#define NixieVfdSelect_GPIO_Port GPIOB
 #define Tube0_Pin GPIO_PIN_10
 #define Tube0_GPIO_Port GPIOB
 #define Tube1_Pin GPIO_PIN_11
