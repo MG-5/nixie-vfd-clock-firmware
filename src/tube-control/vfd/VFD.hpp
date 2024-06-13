@@ -44,9 +44,19 @@ private:
     void strobePeriod();
     void sendSegmentBits(uint32_t bits);
 
+    /*   A1   A2
+        ----I ----
+       | \  |  / |
+      F|  H | J  |B
+       |   \|/   |
+     G1 ---- ---- G2
+       |   /|\   |
+      E|  M | K  |C
+       | /  |  \ |
+     D2 ----L---- D1 */
     static constexpr std::array<uint32_t, 10> numberSegments{
         0b1111111100001001, // 0
-        0b0000000000010010, // 1
+        0b1000110000010010, // 1
         0b1110111011000000, // 2
         0b1111110001000000, // 3
         0b0011000111000000, // 4
