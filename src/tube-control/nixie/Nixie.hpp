@@ -19,9 +19,11 @@ protected:
 
 private:
     util::Gpio enableBoostConverter{Enable50V_190V_GPIO_Port, Enable50V_190V_Pin};
-    util::Gpio dotsEnable{Dots_GPIO_Port, Dots_Pin};
+    util::Gpio dots{Dots_GPIO_Port, Dots_Pin};
     util::Gpio leftComma{LeftComma_GPIO_Port, LeftComma_Pin};
     util::Gpio rightComma{RightComma_GPIO_Port, RightComma_Pin};
+
+    bool shouldShowDots = true;
 
     std::array<util::Gpio, NumberOfTubes> tubeArray{
         util::Gpio{Tube0_GPIO_Port, Tube0_Pin}, //

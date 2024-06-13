@@ -3,7 +3,6 @@
 void Nixie::setup()
 {
     enableBoostConverter.write(true);
-    enableDots(true);
 
     // leftComma.write(true);
     // rightComma.write(true);
@@ -52,6 +51,11 @@ void Nixie::multiplexingStep()
         break;
     }
 
+    if (tubeIndex == 0 && shouldShowDots)
+        dots.write(true);
+    else
+        dots.write(false);
+
     if (++tubeIndex >= AbstractTube::NumberOfTubes)
         tubeIndex = 0;
 }
@@ -59,7 +63,7 @@ void Nixie::multiplexingStep()
 //--------------------------------------------------------------------------------------------------
 void Nixie::enableDots(bool enable)
 {
-    dotsEnable.write(enable);
+    shouldShowDots = enable;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -68,5 +72,5 @@ void Nixie::disableAllTubes()
     for (auto &tube : tubeArray)
         tube.write(false);
 
-    // enableDots(false);
+    dots.write(false);
 }
