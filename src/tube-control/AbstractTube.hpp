@@ -1,6 +1,9 @@
 #pragma once
 
 #include "main.h"
+#include "units/si/frequency.hpp"
+#include "units/si/scalar.hpp"
+#include "units/si/time.hpp"
 
 class AbstractTube
 {
@@ -35,4 +38,5 @@ public:
 
 protected:
     Clock_t clockTime;
+    static constexpr auto MultiplexingFrequency{1.0_ / 250.0_us};
 };

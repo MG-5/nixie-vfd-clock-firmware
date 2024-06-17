@@ -24,6 +24,10 @@ private:
     util::Gpio rightComma{RightComma_GPIO_Port, RightComma_Pin};
 
     bool shouldShowDots = true;
+    bool isRejuvenating = false;
+
+    void rejuvenateStep(uint8_t tubeIndex);
+    void displayTimeOnTubes(uint8_t tubeIndex);
 
     std::array<util::Gpio, NumberOfTubes> tubeArray{
         util::Gpio{Tube0_GPIO_Port, Tube0_Pin}, //

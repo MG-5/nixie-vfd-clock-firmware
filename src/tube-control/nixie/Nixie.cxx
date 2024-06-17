@@ -1,11 +1,10 @@
 #include "Nixie.hpp"
+#include "units/si/scalar.hpp"
+#include "units/si/time.hpp"
 
 void Nixie::setup()
 {
     enableBoostConverter.write(true);
-
-    // leftComma.write(true);
-    // rightComma.write(true);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -13,14 +12,66 @@ void Nixie::multiplexingStep()
 {
     static uint8_t tubeIndex = 0;
 
+    // turn off all tubes and digits
     for (auto &tube : tubeArray)
         tube.write(false);
 
     for (auto &digit : digitArray)
         digit.write(false);
 
+    dots.write(false);
+    leftComma.write(false);
+
+    // start rejuvenating every minute
+    if (clockTime.seconds == 0 && !isRejuvenating)
+        isRejuvenating = true;
+
     tubeArray[tubeIndex].write(true);
 
+    if (isRejuvenating)
+        rejuvenateStep(tubeIndex);
+
+    else
+        displayTimeOnTubes(tubeIndex);
+
+    if (++tubeIndex >= AbstractTube::NumberOfTubes)
+        tubeIndex = 0;
+}
+
+//--------------------------------------------------------------------------------------------------
+void Nixie::rejuvenateStep(uint8_t tubeIndex)
+{
+    static uint8_t digit = 0;
+    static uint16_t rejuvenationCounter = 0;
+
+    // alls digits must be turned on for 200ms rejuvenation respectively
+    constexpr auto RejuvenationTime = 200.0_ms;
+    constexpr auto RejuvenationSteps =
+        (RejuvenationTime / (1.0_ / MultiplexingFrequency)).getMagnitude<uint16_t>() /
+        AbstractTube::NumberOfTubes;
+
+    if (tubeIndex == 0)
+        if (++digit >= AbstractTube::NumberOfDigits)
+        {
+            digit = 0;
+
+            if (++rejuvenationCounter >= RejuvenationSteps)
+            {
+                rejuvenationCounter = 0;
+                isRejuvenating = false;
+                return;
+            }
+        }
+
+    if (digit == 0)
+        leftComma.write(true);
+
+    digitArray[digit].write(true);
+}
+
+//--------------------------------------------------------------------------------------------------
+void Nixie::displayTimeOnTubes(uint8_t tubeIndex)
+{
     switch (tubeIndex)
     {
     case 0:
@@ -53,11 +104,6 @@ void Nixie::multiplexingStep()
 
     if (tubeIndex == 0 && shouldShowDots)
         dots.write(true);
-    else
-        dots.write(false);
-
-    if (++tubeIndex >= AbstractTube::NumberOfTubes)
-        tubeIndex = 0;
 }
 
 //--------------------------------------------------------------------------------------------------
