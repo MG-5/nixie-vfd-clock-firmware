@@ -58,6 +58,8 @@ target_sources(
     src/tube-control/TubeControl.cxx
     src/tube-control/nixie/Nixie.cxx
     src/tube-control/vfd/VFD.cxx
+
+    src/esp_gateway/PacketProcessor.cxx
 )
 
 # Add include paths

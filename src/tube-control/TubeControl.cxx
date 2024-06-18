@@ -13,10 +13,29 @@ void TubeControl::taskMain(void *)
     dimming.initPwm(); // also starts multiplexing
     dimming.setBrightness(80);
 
-    HAL_TIM_OC_Start(multiplexingPwmTimer, fadingTimChannel);
+    // multiplexing will do by interrupts , this task is only for state machine purposes
+    while (true)
+    {
+        switch (state)
+        {
+        case State::Standby:
+            HAL_TIM_OC_Stop(multiplexingPwmTimer, fadingTimChannel);
+            tubes->shutdownAllTubesAndDots();
+            tubes->setBoostConverterState(false);
+            break;
 
-    // further works will doing by interrupts
-    vTaskSuspend(nullptr);
+        case State::Clock:
+            HAL_TIM_OC_Start(multiplexingPwmTimer, fadingTimChannel);
+            tubes->setBoostConverterState(true);
+            break;
+
+        case State::Text:
+            HAL_TIM_OC_Start(multiplexingPwmTimer, fadingTimChannel);
+            tubes->setBoostConverterState(true);
+            break;
+        }
+        notifyWait(0, UINT32_MAX, nullptr, portMAX_DELAY);
+    }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -48,6 +67,9 @@ void TubeControl::setClock(Time clockTime)
 //--------------------------------------------------------------------------------------------------
 void TubeControl::multiplexingTimerInterrupt()
 {
+    if (state == State::Standby)
+        return;
+
     static const auto StepsPerFadingPeriod = tubes->getStepsPerFadingPeriod();
     if (multiplexingCounter < StepsPerFadingPeriod)
     {

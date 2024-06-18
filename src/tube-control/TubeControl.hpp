@@ -33,6 +33,13 @@ public:
 
     Dimming dimming;
 
+    enum class State
+    {
+        Standby,
+        Clock,
+        Text
+    } state = State::Clock;
+
 protected:
     void taskMain(void *) override;
 

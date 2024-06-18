@@ -18,8 +18,10 @@ public:
 
 protected:
     void setup() override;
+    void setBoostConverterState(bool enable) override;
     void multiplexingStep(bool isFading) override;
     void shutdownCurrentTubeAndDot() override;
+    void shutdownAllTubesAndDots() override;
     void prepareFadingDigit() override;
     void updateFadingDigit() override;
 

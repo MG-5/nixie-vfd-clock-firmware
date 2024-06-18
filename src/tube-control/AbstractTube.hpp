@@ -20,6 +20,7 @@ public:
 
     // initialization
     virtual void setup() = 0;
+    virtual void setBoostConverterState(bool enable) = 0;
 
     // update step
     virtual void multiplexingStep(bool isFading = false) = 0;
@@ -30,6 +31,7 @@ public:
     }
 
     virtual void shutdownCurrentTubeAndDot() = 0;
+    virtual void shutdownAllTubesAndDots() = 0;
 
     constexpr virtual size_t getStepsPerFadingPeriod() = 0;
 

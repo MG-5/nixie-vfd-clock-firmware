@@ -4,7 +4,13 @@
 
 void Nixie::setup()
 {
-    enableBoostConverter.write(true);
+    setBoostConverterState(true);
+}
+
+//--------------------------------------------------------------------------------------------------
+void Nixie::setBoostConverterState(bool enable)
+{
+    enableBoostConverter.write(enable);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -73,6 +79,15 @@ void Nixie::displayTimeOnTubes(bool isFading)
 inline void Nixie::shutdownCurrentTubeAndDot()
 {
     tubeArray[tubeIndex].write(false);
+    dots.write(false);
+}
+
+//--------------------------------------------------------------------------------------------------
+void Nixie::shutdownAllTubesAndDots()
+{
+    for (auto &tube : tubeArray)
+        tube.write(false);
+
     dots.write(false);
 }
 

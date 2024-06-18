@@ -50,12 +50,27 @@ void Application::registerCallbacks()
 {
     HAL_StatusTypeDef result = HAL_OK;
 
-    SafeAssert(result == HAL_OK);
-
     // SPI callback for addressable LEDs
     result = HAL_SPI_RegisterCallback(
         LedSpiPeripherie, HAL_SPI_TX_COMPLETE_CB_ID, [](SPI_HandleTypeDef *)
         { getApplicationInstance().lightController.notifySpiIsFinished(); });
+    SafeAssert(result == HAL_OK);
+
+    // uart stuff
+    result = HAL_UART_RegisterCallback(
+        UartPeripherie, HAL_UART_TX_COMPLETE_CB_ID, [](UART_HandleTypeDef *)
+        { getApplicationInstance().packetProcessor.uartTx.notifyTxTask(); });
+    SafeAssert(result == HAL_OK);
+
+    result = HAL_UART_RegisterCallback(
+        UartPeripherie, HAL_UART_ERROR_CB_ID, [](UART_HandleTypeDef *)
+        { getApplicationInstance().packetProcessor.uartRx.uartErrorFromISR(); });
+    SafeAssert(result == HAL_OK);
+
+    result = HAL_UART_RegisterRxEventCallback(
+        UartPeripherie, [](UART_HandleTypeDef *, uint16_t pos)
+        { getApplicationInstance().packetProcessor.uartRx.rxEventsFromISR(pos); });
+    SafeAssert(result == HAL_OK);
 }
 
 //--------------------------------------------------------------------------------------------------

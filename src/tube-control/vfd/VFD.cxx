@@ -7,8 +7,14 @@
 
 void VFD::setup()
 {
-    enableBoostConverter.write(true);
-    heatwireEnable.write(true);
+    setBoostConverterState(true);
+}
+
+//--------------------------------------------------------------------------------------------------
+void VFD::setBoostConverterState(bool enable)
+{
+    enableBoostConverter.write(enable);
+    heatwireEnable.write(enable);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -33,6 +39,15 @@ inline void VFD::shutdownCurrentTubeAndDot()
 {
     tubeArray[tubeIndex].write(false);
     dots.write(false); // directly disable dot anodes
+}
+
+//--------------------------------------------------------------------------------------------------
+void VFD::shutdownAllTubesAndDots()
+{
+    for (auto &tube : tubeArray)
+        tube.write(false);
+
+    dots.write(false);
 }
 
 //--------------------------------------------------------------------------------------------------

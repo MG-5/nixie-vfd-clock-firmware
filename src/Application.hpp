@@ -2,17 +2,22 @@
 
 #include "spi.h"
 #include "tim.h"
+#include "usart.h"
 
 #include "LED/LightController.hpp"
 #include "clock/Clock.hpp"
+#include "esp_gateway/PacketProcessor.hpp"
 #include "helpers/freertos.hpp"
 #include "tube-control/TubeControl.hpp"
+
+#include "wrappers/StreamBuffer.hpp"
 
 /// The entry point of users C++ firmware. This comes after CubeHAL and FreeRTOS initialization.
 /// All needed classes and objects have the root here.
 class Application
 {
 public:
+    static constexpr auto UartPeripherie = &huart1;
     static constexpr auto MultiplexingPwmTimer = &htim1;
     static constexpr auto LedSpiPeripherie = &hspi2;
     static constexpr auto PwmTimChannel = TIM_CHANNEL_1;
@@ -41,4 +46,7 @@ private:
         xTimerCreate("timeoutTimer", toOsTicks(2.0_s), pdFALSE, (void *)0, clockSecondTimeout);
 
     Clock clock{timerTimeoutHandle, tubeControl};
+
+    // gateway to ESP32
+    PacketProcessor packetProcessor{UartPeripherie, clock, tubeControl};
 };
