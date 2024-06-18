@@ -75,6 +75,11 @@ void Application::clockSecondTimeout(TimerHandle_t)
     getApplicationInstance().clock.timeoutInterrupt();
 }
 
+void Application::fadingTimerCompare()
+{
+    getApplicationInstance().tubeControl.fadingTimerInterrupt();
+}
+
 //--------------------------------------------------------------------------------------------------
 // skip HAL`s interupt routine to get more performance
 extern "C" void TIM1_UP_IRQHandler(void)
@@ -85,6 +90,21 @@ extern "C" void TIM1_UP_IRQHandler(void)
 
 extern "C" void TIM1_CC_IRQHandler(void)
 {
-    __HAL_TIM_CLEAR_IT(Application::MultiplexingPwmTimer, TIM_IT_CC4);
-    Application::pwmTimerCompare();
+    if (__HAL_TIM_GET_FLAG(Application::MultiplexingPwmTimer, TIM_FLAG_CC1) == SET)
+    {
+        if (__HAL_TIM_GET_IT_SOURCE(Application::MultiplexingPwmTimer, TIM_IT_CC1) == SET)
+        {
+            __HAL_TIM_CLEAR_IT(Application::MultiplexingPwmTimer, TIM_IT_CC1);
+            Application::pwmTimerCompare();
+        }
+    }
+
+    if (__HAL_TIM_GET_FLAG(Application::MultiplexingPwmTimer, TIM_FLAG_CC2) == true)
+    {
+        if (__HAL_TIM_GET_IT_SOURCE(Application::MultiplexingPwmTimer, TIM_IT_CC2) == SET)
+        {
+            __HAL_TIM_CLEAR_IT(Application::MultiplexingPwmTimer, TIM_IT_CC2);
+            Application::fadingTimerCompare();
+        }
+    }
 }

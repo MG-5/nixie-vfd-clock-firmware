@@ -32,6 +32,4 @@ private:
 
     RainbowAnimation rainbowAnimation{ledSegmentArray};
     LedAnimationBase *targetAnimation{&rainbowAnimation};
-
-    void updateLightState();
 };

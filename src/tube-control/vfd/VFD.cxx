@@ -2,66 +2,30 @@
 
 #include "helpers/freertos.hpp"
 #include "task.h"
+#include "units/si/time.hpp"
+#include "util/MapValue.hpp"
 
 void VFD::setup()
 {
     // enableBoostConverter.write(true);
     delayTimer.startTimer();
-
     heatwireEnable.write(true);
-    vTaskDelay(toOsTicks(100.0_ms));
-
-    shiftRegisterClock.write(false);
-    shiftRegisterData.write(false);
 }
 
 //--------------------------------------------------------------------------------------------------
-void VFD::multiplexingStep()
+void VFD::multiplexingStep(bool isFading)
 {
-    static uint8_t tubeIndex = 0;
+    if (++tubeIndex >= AbstractTube::NumberOfTubes)
+        tubeIndex = 0;
+
+    uint8_t numberToShow = getDigitFromClockTime(isFading ? prevClockTime : currentClockTime);
 
     disableAllTubes();
-
-    uint8_t numberToShow = 0;
-
-    switch (tubeIndex)
-    {
-    case 0:
-        numberToShow = clockTime.hours / 10;
-        break;
-
-    case 1:
-        numberToShow = clockTime.hours % 10;
-        break;
-
-    case 2:
-        numberToShow = clockTime.minutes / 10;
-        break;
-
-    case 3:
-        numberToShow = clockTime.minutes % 10;
-        break;
-
-    case 4:
-        numberToShow = clockTime.seconds / 10;
-        break;
-
-    case 5:
-        numberToShow = clockTime.seconds % 10;
-        break;
-
-    default:
-        break;
-    }
-
     sendSegmentBits(numberSegments[numberToShow]);
 
     tubeArray[tubeIndex].write(true);
-    if (tubeIndex == 0 && shouldDotsLights)
-        dotsEnable.write(true);
-
-    if (++tubeIndex >= AbstractTube::NumberOfTubes)
-        tubeIndex = 0;
+    if (tubeIndex == 0 && (isFading ^ shouldDotsLights))
+        dots.write(true);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -70,13 +34,17 @@ inline void VFD::disableAllTubes()
     for (auto &tube : tubeArray)
         tube.write(false);
 
-    dotsEnable.write(false); // directly disable dot anodes
+    dots.write(false); // directly disable dot anodes
 }
 
 //--------------------------------------------------------------------------------------------------
-void VFD::enableDots(bool enable)
+inline void VFD::updateFadingDigit()
 {
-    shouldDotsLights = enable;
+    if (tubeIndex == 0)
+        dots.write(shouldDotsLights);
+
+    uint8_t numberToShow = getDigitFromClockTime(currentClockTime);
+    sendSegmentBits(numberSegments[numberToShow]);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -100,7 +68,7 @@ void VFD::strobePeriod()
 //--------------------------------------------------------------------------------------------------
 void VFD::sendSegmentBits(uint32_t bits)
 {
-    bits <<= 4;        // make place for dots and commats bits
+    bits <<= 4;        // shift bits to make place for dots and commats bits
     bits |= 0b11;      // dots are always enabled - will be switched by anode driver
     bits &= ~(0b1100); // commatas are currenty disabled
 

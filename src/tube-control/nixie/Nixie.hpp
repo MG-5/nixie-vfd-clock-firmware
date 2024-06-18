@@ -11,11 +11,16 @@ class Nixie : public AbstractTube
 public:
     Nixie() = default;
 
+    constexpr size_t getStepsPerFadingPeriod() override
+    {
+        return (125.0_ms / AbstractTube::MultiplexingStepPeriod).getMagnitude<size_t>();
+    };
+
 protected:
     void setup() override;
-    void multiplexingStep() override;
-    void enableDots(bool enable) override;
+    void multiplexingStep(bool isFading) override;
     void disableAllTubes() override;
+    void updateFadingDigit() override;
 
 private:
     util::Gpio enableBoostConverter{Enable50V_190V_GPIO_Port, Enable50V_190V_Pin};
@@ -23,11 +28,10 @@ private:
     util::Gpio leftComma{LeftComma_GPIO_Port, LeftComma_Pin};
     util::Gpio rightComma{RightComma_GPIO_Port, RightComma_Pin};
 
-    bool shouldShowDots = true;
     bool isRejuvenating = false;
 
-    void rejuvenateStep(uint8_t tubeIndex);
-    void displayTimeOnTubes(uint8_t tubeIndex);
+    void rejuvenateStep();
+    void displayTimeOnTubes(bool isFading);
 
     std::array<util::Gpio, NumberOfTubes> tubeArray{
         util::Gpio{Tube0_GPIO_Port, Tube0_Pin}, //

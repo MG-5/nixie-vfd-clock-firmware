@@ -8,38 +8,34 @@ void Nixie::setup()
 }
 
 //--------------------------------------------------------------------------------------------------
-void Nixie::multiplexingStep()
+void Nixie::multiplexingStep(bool isFading)
 {
-    static uint8_t tubeIndex = 0;
+    if (++tubeIndex >= AbstractTube::NumberOfTubes)
+        tubeIndex = 0;
 
     // turn off all tubes and digits
-    for (auto &tube : tubeArray)
-        tube.write(false);
+    disableAllTubes();
 
     for (auto &digit : digitArray)
         digit.write(false);
 
-    dots.write(false);
     leftComma.write(false);
 
     // start rejuvenating every minute
-    if (clockTime.seconds == 0 && !isRejuvenating)
+    if (currentClockTime.seconds == 30 && !isRejuvenating)
         isRejuvenating = true;
 
-    tubeArray[tubeIndex].write(true);
-
     if (isRejuvenating)
-        rejuvenateStep(tubeIndex);
+        rejuvenateStep();
 
     else
-        displayTimeOnTubes(tubeIndex);
+        displayTimeOnTubes(isFading);
 
-    if (++tubeIndex >= AbstractTube::NumberOfTubes)
-        tubeIndex = 0;
+    tubeArray[tubeIndex].write(true);
 }
 
 //--------------------------------------------------------------------------------------------------
-void Nixie::rejuvenateStep(uint8_t tubeIndex)
+void Nixie::rejuvenateStep()
 {
     static uint8_t digit = 0;
     static uint16_t rejuvenationCounter = 0;
@@ -47,7 +43,7 @@ void Nixie::rejuvenateStep(uint8_t tubeIndex)
     // alls digits must be turned on for 200ms rejuvenation respectively
     constexpr auto RejuvenationTime = 200.0_ms;
     constexpr auto RejuvenationSteps =
-        (RejuvenationTime / (1.0_ / MultiplexingFrequency)).getMagnitude<uint16_t>() /
+        (RejuvenationTime / MultiplexingStepPeriod).getMagnitude<uint16_t>() /
         AbstractTube::NumberOfTubes;
 
     if (tubeIndex == 0)
@@ -70,53 +66,33 @@ void Nixie::rejuvenateStep(uint8_t tubeIndex)
 }
 
 //--------------------------------------------------------------------------------------------------
-void Nixie::displayTimeOnTubes(uint8_t tubeIndex)
+void Nixie::displayTimeOnTubes(bool isFading)
 {
-    switch (tubeIndex)
-    {
-    case 0:
-        digitArray[clockTime.hours / 10].write(true);
-        break;
+    uint8_t numberToShow = getDigitFromClockTime(isFading ? prevClockTime : currentClockTime);
+    digitArray[numberToShow].write(true);
 
-    case 1:
-        digitArray[clockTime.hours % 10].write(true);
-        break;
-
-    case 2:
-        digitArray[clockTime.minutes / 10].write(true);
-        break;
-
-    case 3:
-        digitArray[clockTime.minutes % 10].write(true);
-        break;
-
-    case 4:
-        digitArray[clockTime.seconds / 10].write(true);
-        break;
-
-    case 5:
-        digitArray[clockTime.seconds % 10].write(true);
-        break;
-
-    default:
-        break;
-    }
-
-    if (tubeIndex == 0 && shouldShowDots)
+    if (tubeIndex == 0 && shouldDotsLights)
         dots.write(true);
 }
 
 //--------------------------------------------------------------------------------------------------
-void Nixie::enableDots(bool enable)
-{
-    shouldShowDots = enable;
-}
-
-//--------------------------------------------------------------------------------------------------
-void Nixie::disableAllTubes()
+inline void Nixie::disableAllTubes()
 {
     for (auto &tube : tubeArray)
         tube.write(false);
 
     dots.write(false);
+}
+
+//--------------------------------------------------------------------------------------------------
+inline void Nixie::updateFadingDigit()
+{
+    if (isRejuvenating)
+        return;
+
+    uint8_t oldNumber = getDigitFromClockTime(prevClockTime);
+    uint8_t newNumberToShow = getDigitFromClockTime(currentClockTime);
+
+    digitArray[oldNumber].write(false);
+    digitArray[newNumberToShow].write(true);
 }

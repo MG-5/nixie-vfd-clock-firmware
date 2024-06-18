@@ -22,9 +22,29 @@ public:
     void timeSyncInterrupt();
     void timeoutInterrupt();
 
+    void resetSecondsAtNextTimeSync();
+
     void setClock(AbstractTube::Clock_t clockTime)
     {
         this->clockTime = clockTime;
+    }
+
+    void setSecond(uint8_t second)
+    {
+        if (second < 60)
+            clockTime.seconds = second;
+    }
+
+    void setMinute(uint8_t minute)
+    {
+        if (minute < 60)
+            clockTime.minutes = minute;
+    }
+
+    void setHour(uint8_t hour)
+    {
+        if (hour < 24)
+            clockTime.hours = hour;
     }
 
 protected:
@@ -38,8 +58,11 @@ private:
     static constexpr auto NotifyTimeout = 2;
 
     bool isInFallback = false;
+    bool shouldResetSeconds = false;
 
     void incrementSecond();
+    void incrementMinute();
+    void incrementHour();
 
     AbstractTube::Clock_t clockTime;
 };

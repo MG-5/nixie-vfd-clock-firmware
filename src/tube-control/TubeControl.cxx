@@ -10,47 +10,78 @@ void TubeControl::taskMain(void *)
     tubes->setup();
     vTaskDelay(toOsTicks(100.0_ms));
 
-    // tubes->setClock(18, 42, 05);
+    dimming.initPwm();
+    dimming.setBrightness(40);
 
-    uint16_t counter = 0;
-    uint8_t number = 0;
-    bool enableDots = false;
+    HAL_TIM_OC_Start_IT(multiplexingPwmTimer, fadingTimChannel);
 
-    HAL_TIM_Base_Start_IT(multiplexingPwmTimer);
-    HAL_TIM_OC_Start_IT(multiplexingPwmTimer, pwmTimChannel);
-
-    constexpr auto PwmMinimum = 50;
-    constexpr auto PwmMaximum = 249;
-    __HAL_TIM_SetCompare(multiplexingPwmTimer, pwmTimChannel, PwmMaximum);
-
-    while (1)
-    {
-        notifyTake(toOsTicks(MultiplexingTimeout));
-
-        tubes->multiplexingStep();
-    }
+    // further works will doing by interrupts
+    vTaskSuspend(nullptr);
 }
+
+//--------------------------------------------------------------------------------------------------
+void TubeControl::initClockType()
+{
+    bool isNixieClock = selectGpio.read();
+
+    if (isNixieClock)
+        tubes = new Nixie();
+
+    else
+        tubes = new VFD(delayTimer);
+};
 
 //--------------------------------------------------------------------------------------------------
 void TubeControl::setClock(AbstractTube::Clock_t clockTime)
 {
-    tubes->setClock(clockTime);
+    tubes->prevClockTime = tubes->currentClockTime;
+    tubes->currentClockTime = clockTime;
     tubes->enableDots(clockTime.seconds % 2 == 0);
+
+    isFading = true;
+    multiplexingCounter = 0;
+
+    __HAL_TIM_SET_COMPARE(multiplexingPwmTimer, fadingTimChannel, Dimming::PwmMaximum + 1);
+    HAL_TIM_OC_Start_IT(multiplexingPwmTimer, fadingTimChannel);
 }
 
 //--------------------------------------------------------------------------------------------------
 void TubeControl::multiplexingTimerInterrupt()
 {
-    // APB2 = 64MHz -> 1MHz = 1µs -> prescaler 64-1
-    // auto reload period = 249 -> interrupt every 250µs
+    tubes->multiplexingStep(isFading);
 
-    auto higherPriorityTaskWoken = pdFALSE;
-    notifyFromISR(1, util::wrappers::NotifyAction::SetBits, &higherPriorityTaskWoken);
-    portYIELD_FROM_ISR(higherPriorityTaskWoken);
+    const auto StepsPerFadingPeriod = tubes->getStepsPerFadingPeriod();
+
+    if (multiplexingCounter < StepsPerFadingPeriod)
+    {
+        const size_t Diff = StepsPerFadingPeriod - multiplexingCounter;
+        const auto FadingValue =
+            util::mapValue<size_t, size_t>(0, StepsPerFadingPeriod, Dimming::PwmMinimum, 169, Diff);
+
+        allowInterruptCall = true;
+        __HAL_TIM_SET_COMPARE(multiplexingPwmTimer, fadingTimChannel, FadingValue);
+    }
+    else if (multiplexingCounter == StepsPerFadingPeriod)
+    {
+        isFading = false;
+        HAL_TIM_OC_Stop_IT(multiplexingPwmTimer, fadingTimChannel);
+    }
+
+    multiplexingCounter++;
 }
 
 //--------------------------------------------------------------------------------------------------
 void TubeControl::pwmTimerInterrupt()
 {
     tubes->disableAllTubes();
+}
+
+//--------------------------------------------------------------------------------------------------
+void TubeControl::fadingTimerInterrupt()
+{
+    if (allowInterruptCall)
+    {
+        allowInterruptCall = false;
+        tubes->updateFadingDigit();
+    }
 }

@@ -15,21 +15,23 @@ public:
     // void notifySpiIsFinished();
     void disableAllTubes() override;
 
+    void updateFadingDigit() override;
+
+    constexpr size_t getStepsPerFadingPeriod() override
+    {
+        return (75.0_ms / AbstractTube::MultiplexingStepPeriod).getMagnitude<size_t>();
+    };
+
 protected:
     void setup() override;
-    void multiplexingStep() override;
-
-    void enableDots(bool enable) override;
+    void multiplexingStep(bool isFading) override;
 
 private:
-    // SPI_HandleTypeDef *spiPeripherie = nullptr;
-
     static constexpr auto NumberBitsInShiftRegister = 20;
-    bool shouldDotsLights = true;
 
     util::Gpio enableBoostConverter{Enable50V_190V_GPIO_Port, Enable50V_190V_Pin};
     util::Gpio heatwireEnable{Digit4_Heatwire_GPIO_Port, Digit4_Heatwire_Pin};
-    util::Gpio dotsEnable{Dots_GPIO_Port, Dots_Pin};
+    util::Gpio dots{Dots_GPIO_Port, Dots_Pin};
 
     std::array<util::Gpio, 6> tubeArray{util::Gpio{Tube0_GPIO_Port, Tube0_Pin}, //
                                         util::Gpio{Tube1_GPIO_Port, Tube1_Pin}, //
@@ -39,10 +41,6 @@ private:
                                         util::Gpio{Tube5_GPIO_Port, Tube5_Pin}};
 
     util::Gpio strobe{Digit3_Strobe_GPIO_Port, Digit3_Strobe_Pin};
-
-    void clockPeriod();
-    void strobePeriod();
-    void sendSegmentBits(uint32_t bits);
 
     /*   A1   A2
         ----I ----
@@ -71,4 +69,8 @@ private:
 
     util::Gpio shiftRegisterData{Digit9_SR_Data_GPIO_Port, Digit9_SR_Data_Pin};
     util::Gpio shiftRegisterClock{Digit8_SR_CLK_GPIO_Port, Digit8_SR_CLK_Pin};
+
+    void clockPeriod();
+    void strobePeriod();
+    void sendSegmentBits(uint32_t bits);
 };

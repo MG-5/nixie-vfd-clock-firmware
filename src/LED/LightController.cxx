@@ -13,8 +13,6 @@ using util::wrappers::NotifyAction;
 {
     while (true)
     {
-        updateLightState();
-
         targetAnimation->doAnimationStep();
         ledDriver.sendBuffer(ledSegmentArray);
 
@@ -28,9 +26,4 @@ void LightController::notifySpiIsFinished()
     auto higherPriorityTaskWoken = pdFALSE;
     notifyFromISR(1, NotifyAction::SetBits, &higherPriorityTaskWoken);
     portYIELD_FROM_ISR(higherPriorityTaskWoken);
-}
-
-//--------------------------------------------------------------------------------------------------
-void LightController::updateLightState()
-{
 }

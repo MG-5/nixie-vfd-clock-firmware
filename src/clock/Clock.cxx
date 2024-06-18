@@ -36,6 +36,7 @@ void Clock::taskMain(void *)
             {
                 xTimerReset(timeoutTimerHandle, portMAX_DELAY);
                 incrementSecond();
+                tubeControl.setClock(clockTime);
             }
         }
         break;
@@ -43,7 +44,10 @@ void Clock::taskMain(void *)
         case NotifyTimeout:
         {
             if (isInFallback)
+            {
                 incrementSecond();
+                tubeControl.setClock(clockTime);
+            }
 
             else
             {
@@ -54,6 +58,7 @@ void Clock::taskMain(void *)
                 // increment twice to compensate offset
                 incrementSecond();
                 incrementSecond();
+                tubeControl.setClock(clockTime);
             }
         }
         break;
@@ -67,20 +72,45 @@ void Clock::taskMain(void *)
 //--------------------------------------------------------------------------------------------------
 void Clock::incrementSecond()
 {
+    if (shouldResetSeconds)
+    {
+        shouldResetSeconds = false;
+
+        if (clockTime.seconds >= 30)
+            incrementMinute(); // round up
+
+        clockTime.seconds = 0;
+        return;
+    }
+
     if (++clockTime.seconds >= 60)
     {
         clockTime.seconds = 0;
-
-        if (++clockTime.minutes >= 60)
-        {
-            clockTime.minutes = 0;
-
-            if (++clockTime.hours >= 24)
-                clockTime.hours = 0;
-        }
+        incrementMinute();
     }
+}
 
-    tubeControl.setClock(clockTime);
+//--------------------------------------------------------------------------------------------------
+void Clock::incrementMinute()
+{
+    if (++clockTime.minutes >= 60)
+    {
+        clockTime.minutes = 0;
+        incrementHour();
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+void Clock::incrementHour()
+{
+    if (++clockTime.hours >= 24)
+        clockTime.hours = 0;
+}
+
+//--------------------------------------------------------------------------------------------------
+void Clock::resetSecondsAtNextTimeSync()
+{
+    shouldResetSeconds = true;
 }
 
 //--------------------------------------------------------------------------------------------------

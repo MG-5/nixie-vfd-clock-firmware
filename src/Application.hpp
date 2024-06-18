@@ -16,7 +16,8 @@ public:
     static constexpr auto DelayTimer = &htim2;
     static constexpr auto MultiplexingPwmTimer = &htim1;
     static constexpr auto LedSpiPeripherie = &hspi2;
-    static constexpr auto PwmTimChannel = TIM_CHANNEL_4;
+    static constexpr auto PwmTimChannel = TIM_CHANNEL_1;
+    static constexpr auto FadingTimChannel = TIM_CHANNEL_2;
 
     Application();
     [[noreturn]] void run();
@@ -25,6 +26,8 @@ public:
 
     static void multiplexingTimerUpdate();
     static void pwmTimerCompare();
+    static void fadingTimerCompare();
+
     static void clockSecondTimeout(TimerHandle_t);
 
 private:
@@ -32,7 +35,7 @@ private:
 
     void registerCallbacks();
 
-    TubeControl tubeControl{MultiplexingPwmTimer, DelayTimer, PwmTimChannel};
+    TubeControl tubeControl{MultiplexingPwmTimer, DelayTimer, PwmTimChannel, FadingTimChannel};
     LightController lightController{LedSpiPeripherie};
 
     TimerHandle_t timerTimeoutHandle =
