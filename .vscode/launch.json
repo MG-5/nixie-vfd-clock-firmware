@@ -8,8 +8,8 @@
             "type": "cortex-debug",
             "request": "launch",
             "name": "Debug (J-Link)",
-            "cwd": "${workspaceFolder}",
-            "executable": "${workspaceFolder}/build/${workspaceFolderBasename}.elf",
+            "cwd": "${command:cmake.buildDirectory}",
+            "executable": "${workspaceFolderBasename}.elf",
             "serverpath": "JLinkGDBServer",
             "servertype": "jlink",
             "device": "stm32f103c8",
@@ -20,8 +20,8 @@
             "type": "cortex-debug",
             "request": "launch",
             "name": "Debug (J-Link, RTOS-aware)",
-            "cwd": "${workspaceFolder}",
-            "executable": "${workspaceFolder}/build/${workspaceFolderBasename}.elf",
+            "cwd": "${command:cmake.buildDirectory}",
+            "executable": "${workspaceFolderBasename}.elf",
             "serverpath": "JLinkGDBServer",
             "servertype": "jlink",
             "device": "stm32f103c8",
@@ -33,13 +33,23 @@
             "type": "cortex-debug",
             "request": "attach",
             "name": "Attach (J-Link, RTOS-aware)",
-            "cwd": "${workspaceFolder}",
-            "executable": "${workspaceFolder}/build/${workspaceFolderBasename}.elf",
+            "cwd": "${command:cmake.buildDirectory}",
+            "executable": "${workspaceFolderBasename}.elf",
             "serverpath": "JLinkGDBServer",
             "servertype": "jlink",
             "device": "stm32f103c8",
             "interface": "swd",
             "rtos": "FreeRTOS"
+        },
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "Debug (ST-LINK)",
+            "cwd": "${command:cmake.buildDirectory}",
+            "executable": "${workspaceFolderBasename}.elf",
+            "servertype": "stutil",
+            "device": "stm32f103c8",
+            "runToEntryPoint": "main"
         }
     ]
 }

@@ -1,10 +1,12 @@
 build/
-dsdlc_generated/
+
 .vscode/**
 !.vscode/c_cpp_properties.json
 !.vscode/launch.json
 !.vscode/tasks.json
+
 cubemx/*.mxproject
+cubemx/CMakeLists.txt
 compile_commands.json
 .idea
 cmake-build-debug
