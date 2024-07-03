@@ -13,7 +13,6 @@
 class Application
 {
 public:
-    static constexpr auto DelayTimer = &htim2;
     static constexpr auto MultiplexingPwmTimer = &htim1;
     static constexpr auto LedSpiPeripherie = &hspi2;
     static constexpr auto PwmTimChannel = TIM_CHANNEL_1;
@@ -35,7 +34,7 @@ private:
 
     void registerCallbacks();
 
-    TubeControl tubeControl{MultiplexingPwmTimer, DelayTimer, PwmTimChannel, FadingTimChannel};
+    TubeControl tubeControl{MultiplexingPwmTimer, PwmTimChannel, FadingTimChannel};
     LightController lightController{LedSpiPeripherie};
 
     TimerHandle_t timerTimeoutHandle =

@@ -13,12 +13,11 @@
 class TubeControl : public util::wrappers::TaskWithMemberFunctionBase
 {
 public:
-    TubeControl(TIM_HandleTypeDef *multiplexingPwmTimer, TIM_HandleTypeDef *delayTimer,
-                uint32_t pwmTimChannel, uint32_t fadingTimChannel)
+    TubeControl(TIM_HandleTypeDef *multiplexingPwmTimer, uint32_t pwmTimChannel,
+                uint32_t fadingTimChannel)
         : TaskWithMemberFunctionBase("tubeControlTask", 256, osPriorityRealtime5), //
           dimming(multiplexingPwmTimer, pwmTimChannel),                            //
           multiplexingPwmTimer(multiplexingPwmTimer),                              //
-          delayTimer(delayTimer),                                                  //
           fadingTimChannel(fadingTimChannel)                                       //
     {
         initClockType();
@@ -39,7 +38,6 @@ protected:
 
 private:
     TIM_HandleTypeDef *multiplexingPwmTimer;
-    TIM_HandleTypeDef *delayTimer;
     uint32_t fadingTimChannel;
 
     AbstractTube *tubes = nullptr;

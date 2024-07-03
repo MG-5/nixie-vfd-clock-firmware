@@ -8,7 +8,6 @@
 void VFD::setup()
 {
     // enableBoostConverter.write(true);
-    delayTimer.startTimer();
     heatwireEnable.write(true);
 }
 
@@ -24,7 +23,7 @@ void VFD::multiplexingStep(bool isFading)
     sendSegmentBits(numberSegments[numberToShow]);
 
     tubeArray[tubeIndex].write(true);
-    if (tubeIndex == 0 && (isFading ^ shouldDotsLights))
+    if (tubeIndex == 0 && shouldDotsLights)
         dots.write(true);
 }
 
@@ -40,9 +39,6 @@ inline void VFD::disableAllTubes()
 //--------------------------------------------------------------------------------------------------
 inline void VFD::updateFadingDigit()
 {
-    if (tubeIndex == 0)
-        dots.write(shouldDotsLights);
-
     uint8_t numberToShow = getDigitFromClockTime(currentClockTime);
     sendSegmentBits(numberSegments[numberToShow]);
 }
@@ -51,18 +47,14 @@ inline void VFD::updateFadingDigit()
 void VFD::clockPeriod()
 {
     shiftRegisterClock.write(true);
-    delayTimer.delay187ns();
     shiftRegisterClock.write(false);
-    delayTimer.delay187ns();
 }
 
 //--------------------------------------------------------------------------------------------------
 void VFD::strobePeriod()
 {
     strobe.write(true);
-    delayTimer.delay187ns();
     strobe.write(false);
-    delayTimer.delay187ns();
 }
 
 //--------------------------------------------------------------------------------------------------

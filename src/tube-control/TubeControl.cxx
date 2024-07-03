@@ -28,7 +28,7 @@ void TubeControl::initClockType()
         tubes = new Nixie();
 
     else
-        tubes = new VFD(delayTimer);
+        tubes = new VFD();
 };
 
 //--------------------------------------------------------------------------------------------------

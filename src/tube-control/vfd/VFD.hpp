@@ -3,16 +3,14 @@
 #include <array>
 
 #include "../AbstractTube.hpp"
-#include "DelayTimer.hpp"
 #include "main.h"
 #include "util/gpio.hpp"
 
 class VFD : public AbstractTube
 {
 public:
-    VFD(TIM_HandleTypeDef *delayTimerHandle) : delayTimer(delayTimerHandle){};
+    VFD(){};
 
-    // void notifySpiIsFinished();
     void disableAllTubes() override;
 
     void updateFadingDigit() override;
@@ -52,7 +50,7 @@ private:
       E|  M | K  |C
        | /  |  \ |
      D2 ----L---- D1 */
-    static constexpr std::array<uint32_t, 10> numberSegments{
+    static constexpr std::array<uint32_t, AbstractTube::NumberOfDigits> numberSegments{
         0b1111111100001001, // 0
         0b1000110000010010, // 1
         0b1110111011000000, // 2
@@ -64,8 +62,6 @@ private:
         0b1111111111000000, // 8
         0b1111110111000000  // 9
     };
-
-    DelayTimer delayTimer;
 
     util::Gpio shiftRegisterData{Digit9_SR_Data_GPIO_Port, Digit9_SR_Data_Pin};
     util::Gpio shiftRegisterClock{Digit8_SR_CLK_GPIO_Port, Digit8_SR_CLK_Pin};
