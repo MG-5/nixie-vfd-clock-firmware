@@ -7,40 +7,47 @@
 
 void VFD::setup()
 {
-    // enableBoostConverter.write(true);
+    enableBoostConverter.write(true);
     heatwireEnable.write(true);
 }
 
 //--------------------------------------------------------------------------------------------------
 void VFD::multiplexingStep(bool isFading)
 {
+    uint8_t prevTubeIndex = tubeIndex;
     if (++tubeIndex >= AbstractTube::NumberOfTubes)
         tubeIndex = 0;
 
     uint8_t numberToShow = getDigitFromClockTime(isFading ? prevClockTime : currentClockTime);
 
-    disableAllTubes();
     sendSegmentBits(numberSegments[numberToShow]);
+    tubeArray[prevTubeIndex].write(false);
+    strobePeriod();
 
     tubeArray[tubeIndex].write(true);
-    if (tubeIndex == 0 && shouldDotsLights)
-        dots.write(true);
+    dots.write(tubeIndex == 0 && shouldDotsLights);
 }
 
 //--------------------------------------------------------------------------------------------------
-inline void VFD::disableAllTubes()
+inline void VFD::shutdownCurrentTubeAndDot()
 {
-    for (auto &tube : tubeArray)
-        tube.write(false);
-
+    tubeArray[tubeIndex].write(false);
     dots.write(false); // directly disable dot anodes
+}
+
+//--------------------------------------------------------------------------------------------------
+void VFD::prepareFadingDigit()
+{
+    // write next digit to shift register without latching
+    uint8_t numberToShow = getDigitFromClockTime(currentClockTime);
+    sendSegmentBits(numberSegments[numberToShow]);
 }
 
 //--------------------------------------------------------------------------------------------------
 inline void VFD::updateFadingDigit()
 {
-    uint8_t numberToShow = getDigitFromClockTime(currentClockTime);
-    sendSegmentBits(numberSegments[numberToShow]);
+    // latch prepared shift register data
+    strobePeriod();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -69,6 +76,4 @@ void VFD::sendSegmentBits(uint32_t bits)
         shiftRegisterData.write((bits >> i) & 1);
         clockPeriod();
     }
-
-    strobePeriod();
 }

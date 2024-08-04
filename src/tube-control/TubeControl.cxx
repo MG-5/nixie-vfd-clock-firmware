@@ -10,10 +10,10 @@ void TubeControl::taskMain(void *)
     tubes->setup();
     vTaskDelay(toOsTicks(100.0_ms));
 
-    dimming.initPwm();
-    dimming.setBrightness(40);
+    dimming.initPwm(); // also starts multiplexing
+    dimming.setBrightness(80);
 
-    HAL_TIM_OC_Start_IT(multiplexingPwmTimer, fadingTimChannel);
+    HAL_TIM_OC_Start(multiplexingPwmTimer, fadingTimChannel);
 
     // further works will doing by interrupts
     vTaskSuspend(nullptr);
@@ -41,31 +41,33 @@ void TubeControl::setClock(AbstractTube::Clock_t clockTime)
     isFading = true;
     multiplexingCounter = 0;
 
-    __HAL_TIM_SET_COMPARE(multiplexingPwmTimer, fadingTimChannel, Dimming::PwmMaximum + 1);
-    HAL_TIM_OC_Start_IT(multiplexingPwmTimer, fadingTimChannel);
+    __HAL_TIM_SET_COMPARE(multiplexingPwmTimer, fadingTimChannel, Dimming::PwmMaximum);
+    __HAL_TIM_ENABLE_IT(multiplexingPwmTimer, TIM_IT_CC2); // fadingTimChannel
 }
 
 //--------------------------------------------------------------------------------------------------
 void TubeControl::multiplexingTimerInterrupt()
 {
-    tubes->multiplexingStep(isFading);
-
-    const auto StepsPerFadingPeriod = tubes->getStepsPerFadingPeriod();
-
+    static const auto StepsPerFadingPeriod = tubes->getStepsPerFadingPeriod();
     if (multiplexingCounter < StepsPerFadingPeriod)
     {
         const size_t Diff = StepsPerFadingPeriod - multiplexingCounter;
-        const auto FadingValue =
-            util::mapValue<size_t, size_t>(0, StepsPerFadingPeriod, Dimming::PwmMinimum, 169, Diff);
+        const auto FadingValue = util::mapValue<size_t, size_t>(
+            0, StepsPerFadingPeriod, Dimming::PwmMinimum, Dimming::PwmMaximum, Diff);
 
         allowInterruptCall = true;
         __HAL_TIM_SET_COMPARE(multiplexingPwmTimer, fadingTimChannel, FadingValue);
     }
-    else if (multiplexingCounter == StepsPerFadingPeriod)
+    else
     {
         isFading = false;
-        HAL_TIM_OC_Stop_IT(multiplexingPwmTimer, fadingTimChannel);
+        __HAL_TIM_DISABLE_IT(multiplexingPwmTimer, TIM_IT_CC2); // fadingTimChannel
     }
+
+    tubes->multiplexingStep(isFading);
+
+    if (isFading)
+        tubes->prepareFadingDigit();
 
     multiplexingCounter++;
 }
@@ -73,7 +75,7 @@ void TubeControl::multiplexingTimerInterrupt()
 //--------------------------------------------------------------------------------------------------
 void TubeControl::pwmTimerInterrupt()
 {
-    tubes->disableAllTubes();
+    tubes->shutdownCurrentTubeAndDot();
 }
 
 //--------------------------------------------------------------------------------------------------

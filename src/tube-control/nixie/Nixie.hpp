@@ -13,13 +13,14 @@ public:
 
     constexpr size_t getStepsPerFadingPeriod() override
     {
-        return (125.0_ms / AbstractTube::MultiplexingStepPeriod).getMagnitude<size_t>();
+        return (200.0_ms / AbstractTube::MultiplexingStepPeriod).getMagnitude<size_t>();
     };
 
 protected:
     void setup() override;
     void multiplexingStep(bool isFading) override;
-    void disableAllTubes() override;
+    void shutdownCurrentTubeAndDot() override;
+    void prepareFadingDigit() override;
     void updateFadingDigit() override;
 
 private:
@@ -29,6 +30,9 @@ private:
     util::Gpio rightComma{RightComma_GPIO_Port, RightComma_Pin};
 
     bool isRejuvenating = false;
+
+    uint8_t oldNumber = 0;
+    uint8_t newNumberToShow = 0;
 
     void rejuvenateStep();
     void displayTimeOnTubes(bool isFading);

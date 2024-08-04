@@ -10,16 +10,14 @@ void Nixie::setup()
 //--------------------------------------------------------------------------------------------------
 void Nixie::multiplexingStep(bool isFading)
 {
+    uint8_t prevTubeIndex = tubeIndex;
     if (++tubeIndex >= AbstractTube::NumberOfTubes)
         tubeIndex = 0;
 
-    // turn off all tubes and digits
-    disableAllTubes();
+    tubeArray[prevTubeIndex].write(false);
 
     for (auto &digit : digitArray)
         digit.write(false);
-
-    leftComma.write(false);
 
     // start rejuvenating every minute
     if (currentClockTime.seconds == 30 && !isRejuvenating)
@@ -59,9 +57,6 @@ void Nixie::rejuvenateStep()
             }
         }
 
-    if (digit == 0)
-        leftComma.write(true);
-
     digitArray[digit].write(true);
 }
 
@@ -71,17 +66,21 @@ void Nixie::displayTimeOnTubes(bool isFading)
     uint8_t numberToShow = getDigitFromClockTime(isFading ? prevClockTime : currentClockTime);
     digitArray[numberToShow].write(true);
 
-    if (tubeIndex == 0 && shouldDotsLights)
-        dots.write(true);
+    dots.write(tubeIndex == 0 && shouldDotsLights);
 }
 
 //--------------------------------------------------------------------------------------------------
-inline void Nixie::disableAllTubes()
+inline void Nixie::shutdownCurrentTubeAndDot()
 {
-    for (auto &tube : tubeArray)
-        tube.write(false);
-
+    tubeArray[tubeIndex].write(false);
     dots.write(false);
+}
+
+//--------------------------------------------------------------------------------------------------
+void Nixie::prepareFadingDigit()
+{
+    oldNumber = getDigitFromClockTime(prevClockTime);
+    newNumberToShow = getDigitFromClockTime(currentClockTime);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -89,9 +88,6 @@ inline void Nixie::updateFadingDigit()
 {
     if (isRejuvenating)
         return;
-
-    uint8_t oldNumber = getDigitFromClockTime(prevClockTime);
-    uint8_t newNumberToShow = getDigitFromClockTime(currentClockTime);
 
     digitArray[oldNumber].write(false);
     digitArray[newNumberToShow].write(true);

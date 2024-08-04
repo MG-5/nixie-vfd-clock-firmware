@@ -9,15 +9,16 @@
 class VFD : public AbstractTube
 {
 public:
-    VFD(){};
+    VFD() {};
 
-    void disableAllTubes() override;
+    void shutdownCurrentTubeAndDot() override;
 
+    void prepareFadingDigit() override;
     void updateFadingDigit() override;
 
     constexpr size_t getStepsPerFadingPeriod() override
     {
-        return (75.0_ms / AbstractTube::MultiplexingStepPeriod).getMagnitude<size_t>();
+        return (120.0_ms / AbstractTube::MultiplexingStepPeriod).getMagnitude<size_t>();
     };
 
 protected:

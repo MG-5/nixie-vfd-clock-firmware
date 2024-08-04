@@ -28,10 +28,11 @@ public:
         shouldDotsLights = enable;
     }
 
-    virtual void disableAllTubes() = 0;
+    virtual void shutdownCurrentTubeAndDot() = 0;
 
     constexpr virtual size_t getStepsPerFadingPeriod() = 0;
 
+    virtual void prepareFadingDigit() = 0;
     virtual void updateFadingDigit() = 0;
 
     struct Clock_t
