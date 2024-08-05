@@ -44,7 +44,6 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 add_subdirectory(src/clock/Time)
 add_subdirectory(src/util)
-add_subdirectory(src/LED/gcem)
 
 # Add sources to executable
 target_sources(
@@ -73,6 +72,5 @@ target_link_libraries(
     stm32cubemx
     core
     util
-    gcem
     Time
 )
