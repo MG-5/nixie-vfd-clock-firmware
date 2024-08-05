@@ -81,7 +81,7 @@ void Clock::incrementSecond()
 
         clockTime.second = 0;
     }
-    else if (++clockTime.second >= 60)
+    else
         clockTime.addSeconds(1);
 }
 
