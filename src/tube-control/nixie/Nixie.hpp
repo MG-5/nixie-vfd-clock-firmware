@@ -13,7 +13,7 @@ public:
 
     constexpr size_t getStepsPerFadingPeriod() override
     {
-        return (200.0_ms / AbstractTube::MultiplexingStepPeriod).getMagnitude<size_t>();
+        return (150.0_ms / AbstractTube::MultiplexingStepPeriod).getMagnitude<size_t>();
     };
 
 protected:
