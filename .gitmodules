@@ -8,3 +8,7 @@
 	path = src/LED/gcem
 	url = ../../kthohr/gcem.git
 	branch = master
+[submodule "src/clock/Time"]
+	path = src/clock/Time
+	url = ../Time
+	branch = main

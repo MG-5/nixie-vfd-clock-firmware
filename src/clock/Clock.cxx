@@ -76,35 +76,25 @@ void Clock::incrementSecond()
     {
         shouldResetSeconds = false;
 
-        if (clockTime.seconds >= 30)
+        if (clockTime.second >= 30)
             incrementMinute(); // round up
 
-        clockTime.seconds = 0;
-        return;
+        clockTime.second = 0;
     }
-
-    if (++clockTime.seconds >= 60)
-    {
-        clockTime.seconds = 0;
-        incrementMinute();
-    }
+    else if (++clockTime.second >= 60)
+        clockTime.addSeconds(1);
 }
 
 //--------------------------------------------------------------------------------------------------
 void Clock::incrementMinute()
 {
-    if (++clockTime.minutes >= 60)
-    {
-        clockTime.minutes = 0;
-        incrementHour();
-    }
+    clockTime.addMinutes(1);
 }
 
 //--------------------------------------------------------------------------------------------------
 void Clock::incrementHour()
 {
-    if (++clockTime.hours >= 24)
-        clockTime.hours = 0;
+    clockTime.addHours(1);
 }
 
 //--------------------------------------------------------------------------------------------------

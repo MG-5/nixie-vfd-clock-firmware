@@ -20,7 +20,7 @@ void Nixie::multiplexingStep(bool isFading)
         digit.write(false);
 
     // start rejuvenating every minute
-    if (currentClockTime.seconds == 30 && !isRejuvenating)
+    if (currentClockTime.second == 30 && !isRejuvenating)
         isRejuvenating = true;
 
     if (isRejuvenating)

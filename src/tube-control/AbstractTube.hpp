@@ -1,5 +1,6 @@
 #pragma once
 
+#include "clock/Time/Time.hpp"
 #include "main.h"
 #include "units/si/frequency.hpp"
 #include "units/si/scalar.hpp"
@@ -35,42 +36,35 @@ public:
     virtual void prepareFadingDigit() = 0;
     virtual void updateFadingDigit() = 0;
 
-    struct Clock_t
-    {
-        uint8_t hours = 0;
-        uint8_t minutes = 0;
-        uint8_t seconds = 0;
-    };
-
-    Clock_t currentClockTime;
-    Clock_t prevClockTime;
+    Time currentClockTime;
+    Time prevClockTime;
 
 protected:
     // init with last tube due
     // multiplexingStep() increment at start
     uint8_t tubeIndex = AbstractTube::NumberOfTubes - 1;
 
-    uint8_t getDigitFromClockTime(const Clock_t &clockTime)
+    uint8_t getDigitFromClockTime(const Time &clockTime)
     {
         switch (tubeIndex)
         {
         case 0:
-            return clockTime.hours / 10;
+            return clockTime.hour / 10;
 
         case 1:
-            return clockTime.hours % 10;
+            return clockTime.hour % 10;
 
         case 2:
-            return clockTime.minutes / 10;
+            return clockTime.minute / 10;
 
         case 3:
-            return clockTime.minutes % 10;
+            return clockTime.minute % 10;
 
         case 4:
-            return clockTime.seconds / 10;
+            return clockTime.second / 10;
 
         case 5:
-            return clockTime.seconds % 10;
+            return clockTime.second % 10;
 
         default:
             return 0;

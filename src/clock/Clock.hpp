@@ -24,27 +24,9 @@ public:
 
     void resetSecondsAtNextTimeSync();
 
-    void setClock(AbstractTube::Clock_t clockTime)
+    void setClock(Time clockTime)
     {
         this->clockTime = clockTime;
-    }
-
-    void setSecond(uint8_t second)
-    {
-        if (second < 60)
-            clockTime.seconds = second;
-    }
-
-    void setMinute(uint8_t minute)
-    {
-        if (minute < 60)
-            clockTime.minutes = minute;
-    }
-
-    void setHour(uint8_t hour)
-    {
-        if (hour < 24)
-            clockTime.hours = hour;
     }
 
 protected:
@@ -54,8 +36,8 @@ private:
     TimerHandle_t &timeoutTimerHandle;
     TubeControl &tubeControl;
 
-    static constexpr auto NotifyTimeSync = 1;
-    static constexpr auto NotifyTimeout = 2;
+    static constexpr auto NotifyTimeSync = 1 << 1;
+    static constexpr auto NotifyTimeout = 1 << 2;
 
     bool isInFallback = false;
     bool shouldResetSeconds = false;
@@ -64,5 +46,5 @@ private:
     void incrementMinute();
     void incrementHour();
 
-    AbstractTube::Clock_t clockTime;
+    Time clockTime;
 };

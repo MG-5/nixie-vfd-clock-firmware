@@ -29,7 +29,7 @@ public:
     void pwmTimerInterrupt();
     void fadingTimerInterrupt();
 
-    void setClock(AbstractTube::Clock_t clockTime);
+    void setClock(Time clockTime);
 
     Dimming dimming;
 

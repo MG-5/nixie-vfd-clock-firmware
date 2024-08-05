@@ -32,11 +32,11 @@ void TubeControl::initClockType()
 };
 
 //--------------------------------------------------------------------------------------------------
-void TubeControl::setClock(AbstractTube::Clock_t clockTime)
+void TubeControl::setClock(Time clockTime)
 {
     tubes->prevClockTime = tubes->currentClockTime;
     tubes->currentClockTime = clockTime;
-    tubes->enableDots(clockTime.seconds % 2 == 0);
+    tubes->enableDots(clockTime.second % 2 == 0);
 
     isFading = true;
     multiplexingCounter = 0;

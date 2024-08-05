@@ -6,12 +6,11 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 set(CMAKE_CXX_STANDARD 20)
+set(BUILD_TESTING OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
-
-
 
 # Add custom compiler flags, will also add flags to C++ compiler
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-parameter")
@@ -43,6 +42,7 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined library search paths
 )
 
+add_subdirectory(src/clock/Time)
 add_subdirectory(src/util)
 add_subdirectory(src/LED/gcem)
 
@@ -74,4 +74,5 @@ target_link_libraries(
     core
     util
     gcem
+    Time
 )
