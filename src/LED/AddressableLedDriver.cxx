@@ -31,7 +31,7 @@ inline void AddressableLedDriver::convertToGammaCorrectedColors(LedSegmentArray 
                                                                 LedSpiDataArray &destination)
 {
     for (size_t i = 0; i < destination.size(); i++)
-        destination[i].assignGammaCorrectedColor(source[i]);
+        destination[i].applyGammaCorrection(source[i]);
 }
 
 //--------------------------------------------------------------------------------------------------

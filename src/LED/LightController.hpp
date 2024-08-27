@@ -17,19 +17,28 @@ public:
     explicit LightController(SPI_HandleTypeDef *SpiDevice)
         : TaskWithMemberFunctionBase("lightControllerTask", 512, osPriorityLow4),
           ledDriver(SpiDevice) //
-          {};
+    {};
 
     ~LightController() override = default;
 
     void notifySpiIsFinished();
+
+    enum class AnimationType
+    {
+        Off,
+        Rainbow,
+        SolidColor
+    };
+
+    AnimationType currentAnimation{AnimationType::Rainbow};
 
 protected:
     [[noreturn]] void taskMain(void *) override;
 
 private:
     AddressableLedDriver ledDriver;
-    LedSegmentArray ledSegmentArray{};
+    LedSegmentArray targetLedSegments{};
+    LedSegmentArray solidColorLedSegments{};
 
-    RainbowAnimation rainbowAnimation{ledSegmentArray};
-    LedAnimationBase *targetAnimation{&rainbowAnimation};
+    RainbowAnimation rainbowAnimation{targetLedSegments};
 };

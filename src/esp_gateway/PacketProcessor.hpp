@@ -4,6 +4,7 @@
 #include "wrappers/StreamBuffer.hpp"
 #include "wrappers/Task.hpp"
 
+#include "LED/LightController.hpp"
 #include "UartRx.hpp"
 #include "UartTx.hpp"
 #include "clock/Clock.hpp"
@@ -13,11 +14,13 @@
 class PacketProcessor : public util::wrappers::TaskWithMemberFunctionBase
 {
 public:
-    PacketProcessor(UART_HandleTypeDef *espUartPeripherie, Clock &clock, TubeControl &tubeControl)
+    PacketProcessor(UART_HandleTypeDef *espUartPeripherie, Clock &clock, TubeControl &tubeControl,
+                    LightController &lightController)
         : TaskWithMemberFunctionBase("packetProcessor", 128, osPriorityAboveNormal), //
           espUartPeripherie(espUartPeripherie),                                      //
           clock(clock),                                                              //
-          tubeControl(tubeControl)
+          tubeControl(tubeControl),                                                  //
+          lightController(lightController)
     {
         SafeAssert(espUartPeripherie != nullptr);
     };
@@ -29,6 +32,7 @@ private:
     UART_HandleTypeDef *espUartPeripherie = nullptr;
     Clock &clock;
     TubeControl &tubeControl;
+    LightController &lightController;
 
     static constexpr auto RxBufferSize = 256;
     uint8_t rxBuffer[RxBufferSize];

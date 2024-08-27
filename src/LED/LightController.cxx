@@ -11,12 +11,30 @@ using util::wrappers::NotifyAction;
 
 [[noreturn]] void LightController::taskMain(void *)
 {
+    solidColorLedSegments.fill({0, 0, 255});
     while (true)
     {
-        targetAnimation->doAnimationStep();
-        ledDriver.sendBuffer(ledSegmentArray);
+        units::si::Time targetAnimationDelay = 20.0_ms;
 
-        vTaskDelay(toOsTicks(targetAnimation->getDelay()));
+        switch (currentAnimation)
+        {
+        case AnimationType::Off:
+            targetLedSegments.fill({0, 0, 0});
+            break;
+
+        case AnimationType::Rainbow:
+            rainbowAnimation.doAnimationStep();
+            targetAnimationDelay = rainbowAnimation.getDelay();
+
+            break;
+
+        case AnimationType::SolidColor:
+            targetLedSegments = solidColorLedSegments;
+            break;
+        }
+
+        ledDriver.sendBuffer(targetLedSegments);
+        vTaskDelay(toOsTicks(targetAnimationDelay));
     }
 }
 

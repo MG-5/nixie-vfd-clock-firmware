@@ -72,8 +72,25 @@ PacketHeader PacketProcessor::processPacket()
     }
     else if (topicString == "led/state")
     {
-        asm("nop");
-        // ToDo
+        // make the string lowercase
+        std::transform(payloadString.begin(), payloadString.end(), payloadString.begin(),
+                       ::tolower);
+
+        if (payloadString == "off")
+        {
+            lightController.currentAnimation = LightController::AnimationType::Off;
+            response.status = response::Okay;
+        }
+        else if (payloadString == "rainbow")
+        {
+            lightController.currentAnimation = LightController::AnimationType::Rainbow;
+            response.status = response::Okay;
+        }
+        else if (payloadString == "solid")
+        {
+            lightController.currentAnimation = LightController::AnimationType::SolidColor;
+            response.status = response::Okay;
+        }
     }
     else if (topicString == "led/segments")
     {

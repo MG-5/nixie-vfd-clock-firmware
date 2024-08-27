@@ -48,5 +48,5 @@ private:
     Clock clock{timerTimeoutHandle, tubeControl};
 
     // gateway to ESP32
-    PacketProcessor packetProcessor{UartPeripherie, clock, tubeControl};
+    PacketProcessor packetProcessor{UartPeripherie, clock, tubeControl, lightController};
 };

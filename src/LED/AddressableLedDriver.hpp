@@ -29,7 +29,7 @@ private:
         uint8_t Start = 0xFF; //!< the first byte contains control data like brightness
         BgrColor color;
 
-        void assignGammaCorrectedColor(BgrColor newColor)
+        void applyGammaCorrection(BgrColor newColor)
         {
             color.blue = GammaCorrectionLUT[newColor.blue];
             color.green = GammaCorrectionLUT[newColor.green];
