@@ -1,5 +1,6 @@
 #include "VFD.hpp"
 
+#include "font/Font.hpp"
 #include "helpers/freertos.hpp"
 #include "task.h"
 #include "units/si/time.hpp"
@@ -26,7 +27,7 @@ void VFD::multiplexingStep(bool isFading)
 
     uint8_t numberToShow = getDigitFromClockTime(isFading ? prevClockTime : currentClockTime);
 
-    sendSegmentBits(numberSegments[numberToShow]);
+    sendSegmentBits(font.getGlyph(numberToShow + '0'));
     tubeArray[prevTubeIndex].write(false);
     strobePeriod();
 
@@ -55,7 +56,7 @@ void VFD::prepareFadingDigit()
 {
     // write next digit to shift register without latching
     uint8_t numberToShow = getDigitFromClockTime(currentClockTime);
-    sendSegmentBits(numberSegments[numberToShow]);
+    sendSegmentBits(font.getGlyph(numberToShow + '0'));
 }
 
 //--------------------------------------------------------------------------------------------------
