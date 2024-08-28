@@ -34,19 +34,23 @@ public:
 
     static void clockSecondTimeout(TimerHandle_t);
 
-private:
-    static inline Application *instance{nullptr};
-
-    void registerCallbacks();
-
     TubeControl tubeControl{MultiplexingPwmTimer, PwmTimChannel, FadingTimChannel};
     LightController lightController{LedSpiPeripherie};
 
     TimerHandle_t timerTimeoutHandle =
         xTimerCreate("timeoutTimer", toOsTicks(2.0_s), pdFALSE, (void *)0, clockSecondTimeout);
 
-    Clock clock{timerTimeoutHandle, tubeControl};
+    static constexpr auto TxBufferSize = 64;
+    util::wrappers::StreamBuffer txStream{TxBufferSize, 0};
+
+    Clock clock{timerTimeoutHandle, tubeControl, txStream};
 
     // gateway to ESP32
     PacketProcessor packetProcessor{UartPeripherie, clock, tubeControl, lightController};
+    UartTx uartTx{UartPeripherie, txStream};
+
+private:
+    static inline Application *instance{nullptr};
+
+    void registerCallbacks();
 };

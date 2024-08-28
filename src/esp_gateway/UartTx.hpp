@@ -8,10 +8,10 @@
 class UartTx : public util::wrappers::TaskWithMemberFunctionBase
 {
 public:
-    UartTx(UART_HandleTypeDef *uartPeripherie, util::wrappers::StreamBuffer &txMessageBuffer)
+    UartTx(UART_HandleTypeDef *uartPeripherie, util::wrappers::StreamBuffer &txStream)
         : TaskWithMemberFunctionBase("uartTxTask", 64, osPriorityNormal5), //
           uartPeripherie(uartPeripherie),                                  //
-          txMessageBuffer(txMessageBuffer){};
+          txStream(txStream) {};
 
     void notifyTxTask()
     {
@@ -26,14 +26,14 @@ protected:
         while (true)
         {
             auto messageLength =
-                txMessageBuffer.receive(std::span(sendBuffer, SendBufferSize), portMAX_DELAY);
+                txStream.receive(std::span(sendBuffer, SendBufferSize), portMAX_DELAY);
 
             if (messageLength == 0)
             {
                 // In case the message to be read out is to large for the receive buffer, we need to
                 // reset the whole message buffer since otherwise the message will stay in the
                 // buffer and block subsequent readouts.
-                txMessageBuffer.reset();
+                txStream.reset();
                 continue;
             }
 
@@ -44,8 +44,8 @@ protected:
 
 private:
     UART_HandleTypeDef *uartPeripherie = nullptr;
-    util::wrappers::StreamBuffer &txMessageBuffer;
+    util::wrappers::StreamBuffer &txStream;
 
-    static constexpr auto SendBufferSize = 32;
+    static constexpr auto SendBufferSize = 64;
     uint8_t sendBuffer[SendBufferSize]{};
 };

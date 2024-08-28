@@ -57,9 +57,9 @@ void Application::registerCallbacks()
     SafeAssert(result == HAL_OK);
 
     // uart stuff
-    result = HAL_UART_RegisterCallback(
-        UartPeripherie, HAL_UART_TX_COMPLETE_CB_ID, [](UART_HandleTypeDef *)
-        { getApplicationInstance().packetProcessor.uartTx.notifyTxTask(); });
+    result = HAL_UART_RegisterCallback(UartPeripherie, HAL_UART_TX_COMPLETE_CB_ID,
+                                       [](UART_HandleTypeDef *)
+                                       { getApplicationInstance().uartTx.notifyTxTask(); });
     SafeAssert(result == HAL_OK);
 
     result = HAL_UART_RegisterCallback(
@@ -122,4 +122,9 @@ extern "C" void TIM1_CC_IRQHandler(void)
             Application::fadingTimerCompare();
         }
     }
+}
+
+extern "C" void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    Application::getApplicationInstance().clock.timeSyncInterrupt();
 }

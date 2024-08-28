@@ -1,26 +1,32 @@
 #include "Clock.hpp"
+#include "esp_gateway/protocol.hpp"
 #include "helpers/freertos.hpp"
+#include "sync.hpp"
 
 #include <climits>
 
 void Clock::taskMain(void *)
 {
-    // ToDo: wait for tube initialization
-
-    // ToDo: wait for ESP clock setting by waiting for first time sync pulse but incrementing
-    // seconds only starts with second pulse (or timeout)
-    // notifyWait(ULONG_MAX, ULONG_MAX, (uint32_t *)0, portMAX_DELAY);
-
-    uint32_t notificationValue = 0;
+    // enable time sync interrupt
+    HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
     while (true)
     {
-        // start timeout timer
-        xTimerReset(timeoutTimerHandle, portMAX_DELAY);
-
-        // wait for time sync every second
-        notificationValue = 0;
+        // wait for time sync pulse arriving every second
+        uint32_t notificationValue = 0;
         notifyWait(ULONG_MAX, ULONG_MAX, &notificationValue, portMAX_DELAY);
+
+        if ((syncEventGroup.getBits() & sync_events::TimeSyncArrived) == 0)
+        {
+            // ESP is sending time sync pulses and we doesnt knowing the time yet
+            // so we need to request the time from the ESP
+
+            requestTimeFromEsp();
+            continue;
+        }
+
+        // start/reset fallback timer
+        xTimerReset(timeoutTimerHandle, portMAX_DELAY);
 
         switch (notificationValue)
         {
@@ -67,6 +73,22 @@ void Clock::taskMain(void *)
             break;
         }
     }
+}
+
+//--------------------------------------------------------------------------------------------------
+void Clock::requestTimeFromEsp()
+{
+    std::string topic = "clock";
+    std::string payload = "request";
+    PacketHeader packetHeader = {.topicLength = (uint16_t)topic.length(),
+                                 .payloadSize = (uint16_t)payload.length()};
+
+    txStream.send(std::span(reinterpret_cast<uint8_t *>(&packetHeader), sizeof(PacketHeader)),
+                  portMAX_DELAY);
+    txStream.send(std::span(reinterpret_cast<uint8_t *>(topic.data()), topic.length()),
+                  portMAX_DELAY);
+    txStream.send(std::span(reinterpret_cast<uint8_t *>(payload.data()), payload.length()),
+                  portMAX_DELAY);
 }
 
 //--------------------------------------------------------------------------------------------------

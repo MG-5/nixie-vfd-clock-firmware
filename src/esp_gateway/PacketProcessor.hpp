@@ -38,10 +38,6 @@ private:
     uint8_t rxBuffer[RxBufferSize];
     util::wrappers::StreamBuffer rxStream{RxBufferSize, 1};
 
-    static constexpr auto TxBufferSize = 64;
-    uint8_t txBuffer[TxBufferSize];
-    util::wrappers::StreamBuffer txStream{TxBufferSize, 0};
-
     size_t bufferStartPosition = 0;
     size_t bufferLastPosition = 0;
 
@@ -50,10 +46,9 @@ private:
     PacketHeader header{};
 
     bool extractPacketFromReceiveBuffer();
-    PacketHeader processPacket();
+    void processPacket();
     void sendResponsePacket(PacketHeader &responseHeader);
 
 public:
-    UartTx uartTx{espUartPeripherie, txStream};
     UartRx uartRx{espUartPeripherie, rxStream};
 };

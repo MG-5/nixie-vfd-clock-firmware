@@ -3,6 +3,7 @@
 #include "core/SafeAssert.h"
 #include "helpers/freertos.hpp"
 #include "timers.h"
+#include "wrappers/StreamBuffer.hpp"
 #include "wrappers/Task.hpp"
 
 #include "tube-control/TubeControl.hpp"
@@ -11,10 +12,12 @@ class Clock : public util::wrappers::TaskWithMemberFunctionBase
 {
 
 public:
-    Clock(TimerHandle_t &timeoutTimerHandle, TubeControl &tubeControl)   //
+    Clock(TimerHandle_t &timeoutTimerHandle, TubeControl &tubeControl,
+          util::wrappers::StreamBuffer &txStream)                        //
         : TaskWithMemberFunctionBase("clockTask", 128, osPriorityHigh2), //
           timeoutTimerHandle(timeoutTimerHandle),                        //
-          tubeControl(tubeControl)                                       //
+          tubeControl(tubeControl),                                      //
+          txStream(txStream)
     {
         SafeAssert(timeoutTimerHandle != nullptr);
     }
@@ -35,6 +38,7 @@ protected:
 private:
     TimerHandle_t &timeoutTimerHandle;
     TubeControl &tubeControl;
+    util::wrappers::StreamBuffer &txStream;
 
     static constexpr auto NotifyTimeSync = 1 << 1;
     static constexpr auto NotifyTimeout = 1 << 2;
@@ -45,6 +49,8 @@ private:
     void incrementSecond();
     void incrementMinute();
     void incrementHour();
+
+    void requestTimeFromEsp();
 
     Time clockTime;
 };

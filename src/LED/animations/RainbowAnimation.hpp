@@ -35,7 +35,7 @@ private:
     size_t rainbowIndex = 0;
 
     static constexpr unsigned LightDataSize = 360;
-    static constexpr auto BrightnessFactor = 0.35f;
+    static constexpr auto BrightnessFactor = 1.0f;
     static constexpr uint8_t SinTable[LightDataSize] = {
         0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12,
         13, 15, 17, 18, 20, 22, 24, 26, 28, 30, 32, 35, 37, 39, 42, 44, 47, 49,

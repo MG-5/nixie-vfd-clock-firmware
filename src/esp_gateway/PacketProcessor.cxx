@@ -1,6 +1,7 @@
 #include "PacketProcessor.hpp"
 #include "LED/LedDataTypes.hpp"
 #include "protocol.hpp"
+#include "sync.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -13,27 +14,23 @@ void PacketProcessor::taskMain(void *)
         if (!extractPacketFromReceiveBuffer())
             continue;
 
-        PacketHeader responseHeader = processPacket();
-        sendResponsePacket(responseHeader);
+        processPacket();
     }
 }
 
-//-----------------------------------------------------------------------------
-PacketHeader PacketProcessor::processPacket()
-{
-    PacketHeader response = {.status = response::OperationFailed};
-
-    std::string topicString{reinterpret_cast<char *>(topic), header.topicLength};
-    std::string payloadString = {reinterpret_cast<char *>(payload), header.payloadSize};
-
-    /* possible topics:
+/* possible topics:
     - state
     - brightness
     - led/state
     - led/segments
     - clock
     - reset
-    */
+*/
+//-----------------------------------------------------------------------------
+void PacketProcessor::processPacket()
+{
+    std::string topicString{reinterpret_cast<char *>(topic), header.topicLength};
+    std::string payloadString = {reinterpret_cast<char *>(payload), header.payloadSize};
 
     if (topicString == "state")
     {
@@ -42,21 +39,16 @@ PacketHeader PacketProcessor::processPacket()
                        ::tolower);
 
         if (payloadString == "standby")
-        {
             tubeControl.state = TubeControl::State::Standby;
-            response.status = response::Okay;
-        }
+
         else if (payloadString == "clock")
-        {
             tubeControl.state = TubeControl::State::Clock;
-            response.status = response::Okay;
-        }
+
         else if (payloadString == "text")
-        {
             // ToDo
             // tubeControl.state = TubeControl::State::Text;
-            response.status = response::NotSupported;
-        }
+            asm("nop");
+
         tubeControl.notify(1, util::wrappers::NotifyAction::SetBits);
     }
     else if (topicString == "brightness")
@@ -67,7 +59,6 @@ PacketHeader PacketProcessor::processPacket()
             // convert string to integer
             uint8_t newBrightness = std::clamp(std::atoi(payloadString.c_str()), 1, 100);
             tubeControl.dimming.setBrightness(newBrightness);
-            response.status = response::Okay;
         }
     }
     else if (topicString == "led/state")
@@ -77,20 +68,13 @@ PacketHeader PacketProcessor::processPacket()
                        ::tolower);
 
         if (payloadString == "off")
-        {
             lightController.currentAnimation = LightController::AnimationType::Off;
-            response.status = response::Okay;
-        }
+
         else if (payloadString == "rainbow")
-        {
             lightController.currentAnimation = LightController::AnimationType::Rainbow;
-            response.status = response::Okay;
-        }
+
         else if (payloadString == "solid")
-        {
             lightController.currentAnimation = LightController::AnimationType::SolidColor;
-            response.status = response::Okay;
-        }
     }
     else if (topicString == "led/segments")
     {
@@ -99,24 +83,18 @@ PacketHeader PacketProcessor::processPacket()
     }
     else if (topicString == "clock")
     {
-        if (header.payloadSize > 0)
-        {
-            std::string clockPayload{reinterpret_cast<char *>(payload), header.payloadSize};
-            // Time newClock{clockPayload};
-            // clock.setClock(newClock);
-            response.status = response::Okay;
-        }
+        if (header.payloadSize != sizeof("HH:MM:SS") - 1)
+            return;
+
+        std::string clockPayload{reinterpret_cast<char *>(payload), header.payloadSize};
+        Time newClock{clockPayload};
+        clock.setClock(newClock);
+        syncEventGroup.setBits(sync_events::TimeSyncArrived);
     }
     else if (topicString == "reset")
     {
         NVIC_SystemReset();
     }
-    else
-    {
-        response.status = response::NotSupported;
-    }
-
-    return response;
 }
 
 //-----------------------------------------------------------------------------
@@ -183,11 +161,4 @@ bool PacketProcessor::extractPacketFromReceiveBuffer()
 
     bufferStartPosition += sizeof(PacketHeader) + header.topicLength + header.payloadSize;
     return true;
-}
-
-//-----------------------------------------------------------------------------
-void PacketProcessor::sendResponsePacket(PacketHeader &responseHeader)
-{
-    std::memcpy(txBuffer, &responseHeader, sizeof(PacketHeader));
-    txStream.send(std::span(txBuffer, sizeof(PacketHeader)), portMAX_DELAY);
 }

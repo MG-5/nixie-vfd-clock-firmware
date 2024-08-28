@@ -63,6 +63,7 @@ void Error_Handler(void);
 #define Dots_GPIO_Port GPIOC
 #define TimeSync_Pin GPIO_PIN_15
 #define TimeSync_GPIO_Port GPIOC
+#define TimeSync_EXTI_IRQn EXTI15_10_IRQn
 #define Tube3_Pin GPIO_PIN_0
 #define Tube3_GPIO_Port GPIOD
 #define Tube5_Pin GPIO_PIN_1
