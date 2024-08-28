@@ -25,28 +25,82 @@ void VFD::multiplexingStep(bool isFading)
     if (++tubeIndex >= AbstractTube::NumberOfTubes)
         tubeIndex = 0;
 
-    uint8_t numberToShow = getDigitFromClockTime(isFading ? prevClockTime : currentClockTime);
+    sendSegmentBits(
+        isFading ? gridDataArray1[tubeIndex].segments : gridDataArray2[tubeIndex].segments,
+        isFading ? gridDataArray1[tubeIndex].commatas : gridDataArray2[tubeIndex].commatas);
 
-    sendSegmentBits(font.getGlyph(numberToShow + '0'));
-    tubeArray[prevTubeIndex].write(false);
+    gridGpioArray[prevTubeIndex].write(false);
     strobePeriod();
 
-    tubeArray[tubeIndex].write(true);
+    gridGpioArray[tubeIndex].write(true);
     dots.write(tubeIndex == 0 && shouldDotsLights);
+}
+
+//--------------------------------------------------------------------------------------------------
+void VFD::renderInitialization()
+{
+    dots.write(false);
+    for (auto &grid : gridGpioArray)
+        grid.write(true);
+
+    uint32_t bits = 1;
+
+    while ((bits & (1 << (NumberBitsInShiftRegister - 4))) == 0)
+    {
+        sendSegmentBits(bits);
+        strobePeriod();
+        vTaskDelay(toOsTicks(100.0_ms));
+
+        bits <<= 1;
+    }
+
+    bits >>= 1;
+    bits |= 1 << (NumberBitsInShiftRegister - 5);
+
+    while ((bits & 1) == 0)
+    {
+        bits >>= 1;
+        bits |= 1 << (NumberBitsInShiftRegister - 5);
+
+        sendSegmentBits(bits);
+        strobePeriod();
+        vTaskDelay(toOsTicks(100.0_ms));
+    }
+
+    sendSegmentBits(bits);
+    strobePeriod();
+    vTaskDelay(toOsTicks(100.0_ms));
+    sendSegmentBits(bits, 0b11);
+    dots.write(true);
+    strobePeriod();
+}
+
+// -------------------------------------------------------------------------------------------------
+void VFD::renderClock(Time &newClock)
+{
+    gridDataArray1 = gridDataArray2;
+
+    for (auto i = 0; i < NumberOfTubes; i++)
+    {
+        gridDataArray2[i].segments = font.getGlyph(getDigitFromClockTime(newClock, i) + '0');
+        gridDataArray2[i].commatas = 0;
+    }
+
+    shouldDotsLights = newClock.second % 2 == 0;
 }
 
 //--------------------------------------------------------------------------------------------------
 inline void VFD::shutdownCurrentTubeAndDot()
 {
-    tubeArray[tubeIndex].write(false);
+    gridGpioArray[tubeIndex].write(false);
     dots.write(false); // directly disable dot anodes
 }
 
 //--------------------------------------------------------------------------------------------------
 void VFD::shutdownAllTubesAndDots()
 {
-    for (auto &tube : tubeArray)
-        tube.write(false);
+    for (auto &gridGpio : gridGpioArray)
+        gridGpio.write(false);
 
     dots.write(false);
 }
@@ -55,8 +109,7 @@ void VFD::shutdownAllTubesAndDots()
 void VFD::prepareFadingDigit()
 {
     // write next digit to shift register without latching
-    uint8_t numberToShow = getDigitFromClockTime(currentClockTime);
-    sendSegmentBits(font.getGlyph(numberToShow + '0'));
+    sendSegmentBits(gridDataArray2[tubeIndex].segments, gridDataArray2[tubeIndex].commatas);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -81,11 +134,11 @@ void VFD::strobePeriod()
 }
 
 //--------------------------------------------------------------------------------------------------
-void VFD::sendSegmentBits(uint32_t bits)
+void VFD::sendSegmentBits(uint32_t bits, uint8_t commatas)
 {
-    bits <<= 4;        // shift bits to make place for dots and commats bits
-    bits |= 0b11;      // dots are always enabled - will be switched by anode driver
-    bits &= ~(0b1100); // commatas are currenty disabled
+    bits <<= 4;                     // shift bits to make place for dots and commats bits
+    bits |= 0b11;                   // dots are always enabled - will be switched by anode driver
+    bits |= (commatas & 0b11) << 2; // commatas
 
     for (auto i = 0; i < NumberBitsInShiftRegister; i++)
     {

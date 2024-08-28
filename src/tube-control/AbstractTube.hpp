@@ -21,11 +21,13 @@ public:
     // initialization
     virtual void setup() = 0;
     virtual void setBoostConverterState(bool enable) = 0;
+    virtual void renderInitialization() = 0;
 
     // update step
     virtual void multiplexingStep(bool isFading = false) = 0;
+    virtual void renderClock(Time &newClock) = 0;
 
-    void enableDots(bool enable)
+    void setDotState(bool enable)
     {
         shouldDotsLights = enable;
     }
@@ -38,17 +40,14 @@ public:
     virtual void prepareFadingDigit() = 0;
     virtual void updateFadingDigit() = 0;
 
-    Time currentClockTime;
-    Time prevClockTime;
-
 protected:
     // init with last tube due
     // multiplexingStep() increment at start
     uint8_t tubeIndex = AbstractTube::NumberOfTubes - 1;
 
-    uint8_t getDigitFromClockTime(const Time &clockTime)
+    uint8_t getDigitFromClockTime(const Time &clockTime, uint8_t index)
     {
-        switch (tubeIndex)
+        switch (index)
         {
         case 0:
             return clockTime.hour / 10;
@@ -73,5 +72,5 @@ protected:
         }
     }
 
-    bool shouldDotsLights = true;
+    bool shouldDotsLights = false;
 };

@@ -18,7 +18,7 @@ public:
     static constexpr auto PwmMinimum = 40;
     static constexpr auto PwmMaximum = 249;
 
-    void initPwm()
+    void startTimerWithInterrupts()
     {
         HAL_TIM_Base_Start_IT(multiplexingPwmTimer);
         HAL_TIM_OC_Start_IT(multiplexingPwmTimer, pwmTimChannel);

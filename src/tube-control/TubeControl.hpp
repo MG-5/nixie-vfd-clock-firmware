@@ -50,9 +50,12 @@ private:
     AbstractTube *tubes = nullptr;
     util::Gpio selectGpio{NixieVfdSelect_GPIO_Port, NixieVfdSelect_Pin};
 
-    void initPwm();
-
     bool isFading = false;
     uint16_t multiplexingCounter = 0;
     bool allowInterruptCall = false;
+
+    Time currentClockTime;
+
+    void displayClock();
+    void resetFading();
 };

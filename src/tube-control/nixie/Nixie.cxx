@@ -1,4 +1,6 @@
 #include "Nixie.hpp"
+#include "helpers/freertos.hpp"
+#include "task.h"
 #include "units/si/scalar.hpp"
 #include "units/si/time.hpp"
 
@@ -14,28 +16,72 @@ void Nixie::setBoostConverterState(bool enable)
 }
 
 //--------------------------------------------------------------------------------------------------
+void Nixie::renderInitialization()
+{
+    for (auto &tube : tubeGpioArray)
+    {
+        tube.write(true);
+
+        for (int digit = 0; digit < AbstractTube::NumberOfDigits; digit++)
+        {
+            digitGpioArray[digit].write(true);
+            vTaskDelay(toOsTicks(150.0_ms));
+            digitGpioArray[digit].write(false);
+        }
+
+        tube.write(false);
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
 void Nixie::multiplexingStep(bool isFading)
 {
     uint8_t prevTubeIndex = tubeIndex;
     if (++tubeIndex >= AbstractTube::NumberOfTubes)
         tubeIndex = 0;
 
-    tubeArray[prevTubeIndex].write(false);
+    tubeGpioArray[prevTubeIndex].write(false);
 
-    for (auto &digit : digitArray)
+    for (auto &digit : digitGpioArray)
         digit.write(false);
 
-    // start rejuvenating every minute
-    if (currentClockTime.second == 30 && !isRejuvenating)
+    // start rejuvenating every minute at 30. second
+    if (digitDataArray2[4].digit == 3 && digitDataArray2[5].digit == 0 && !isRejuvenating)
         isRejuvenating = true;
 
     if (isRejuvenating)
         rejuvenateStep();
 
     else
-        displayTimeOnTubes(isFading);
+    {
+        uint8_t digitToShow =
+            isFading ? digitDataArray1[tubeIndex].digit : digitDataArray2[tubeIndex].digit;
+        uint8_t isCommaLeftEnabled =
+            isFading ? digitDataArray1[tubeIndex].commaLeft : digitDataArray2[tubeIndex].commaLeft;
 
-    tubeArray[tubeIndex].write(true);
+        if (clockArrivedOnce)
+            digitGpioArray[digitToShow].write(true);
+        leftComma.write(isCommaLeftEnabled);
+    }
+
+    tubeGpioArray[tubeIndex].write(true);
+
+    dots.write(tubeIndex == 0 && shouldDotsLights);
+}
+
+// -------------------------------------------------------------------------------------------------
+void Nixie::renderClock(Time &newClock)
+{
+    digitDataArray1 = digitDataArray2;
+
+    clockArrivedOnce = true;
+    for (auto i = 0; i < NumberOfTubes; i++)
+    {
+        digitDataArray2[i].digit = getDigitFromClockTime(newClock, i);
+        digitDataArray2[i].commaLeft = false;
+    }
+
+    setDotState(newClock.second % 2 == 0);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -63,29 +109,20 @@ void Nixie::rejuvenateStep()
             }
         }
 
-    digitArray[digit].write(true);
-}
-
-//--------------------------------------------------------------------------------------------------
-void Nixie::displayTimeOnTubes(bool isFading)
-{
-    uint8_t numberToShow = getDigitFromClockTime(isFading ? prevClockTime : currentClockTime);
-    digitArray[numberToShow].write(true);
-
-    dots.write(tubeIndex == 0 && shouldDotsLights);
+    digitGpioArray[digit].write(true);
 }
 
 //--------------------------------------------------------------------------------------------------
 inline void Nixie::shutdownCurrentTubeAndDot()
 {
-    tubeArray[tubeIndex].write(false);
+    tubeGpioArray[tubeIndex].write(false);
     dots.write(false);
 }
 
 //--------------------------------------------------------------------------------------------------
 void Nixie::shutdownAllTubesAndDots()
 {
-    for (auto &tube : tubeArray)
+    for (auto &tube : tubeGpioArray)
         tube.write(false);
 
     dots.write(false);
@@ -94,8 +131,7 @@ void Nixie::shutdownAllTubesAndDots()
 //--------------------------------------------------------------------------------------------------
 void Nixie::prepareFadingDigit()
 {
-    oldNumber = getDigitFromClockTime(prevClockTime);
-    newNumberToShow = getDigitFromClockTime(currentClockTime);
+    newNumberToShow = digitDataArray2[tubeIndex].digit;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -104,6 +140,8 @@ inline void Nixie::updateFadingDigit()
     if (isRejuvenating)
         return;
 
-    digitArray[oldNumber].write(false);
-    digitArray[newNumberToShow].write(true);
+    for (auto &digit : digitGpioArray)
+        digit.write(false);
+
+    digitGpioArray[newNumberToShow].write(true);
 }

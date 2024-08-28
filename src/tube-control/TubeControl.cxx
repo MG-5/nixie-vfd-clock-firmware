@@ -9,13 +9,18 @@ void TubeControl::taskMain(void *)
     vTaskDelay(toOsTicks(100.0_ms));
     tubes->setup();
     vTaskDelay(toOsTicks(100.0_ms));
+    // tubes->renderInitialization();
+    // vTaskDelay(toOsTicks(1.0_s));
 
-    dimming.initPwm(); // also starts multiplexing
+    // start multiplexing
+    dimming.startTimerWithInterrupts();
     dimming.setBrightness(80);
 
-    // multiplexing will do by interrupts , this task is only for state machine purposes
+    // multiplexing will done by interrupts , this task is only for state machine purposes
     while (true)
     {
+        notifyWait(0, UINT32_MAX, nullptr, portMAX_DELAY);
+
         switch (state)
         {
         case State::Standby:
@@ -27,6 +32,7 @@ void TubeControl::taskMain(void *)
         case State::Clock:
             HAL_TIM_OC_Start(multiplexingPwmTimer, fadingTimChannel);
             tubes->setBoostConverterState(true);
+            displayClock();
             break;
 
         case State::Text:
@@ -34,7 +40,6 @@ void TubeControl::taskMain(void *)
             tubes->setBoostConverterState(true);
             break;
         }
-        notifyWait(0, UINT32_MAX, nullptr, portMAX_DELAY);
     }
 }
 
@@ -53,10 +58,35 @@ void TubeControl::initClockType()
 //--------------------------------------------------------------------------------------------------
 void TubeControl::setClock(Time clockTime)
 {
-    tubes->prevClockTime = tubes->currentClockTime;
-    tubes->currentClockTime = clockTime;
-    tubes->enableDots(clockTime.second % 2 == 0);
+    currentClockTime = clockTime;
 
+    if (state != State::Clock)
+        return;
+
+    displayClock();
+}
+
+//--------------------------------------------------------------------------------------------------
+void TubeControl::setText(std::string &newText)
+{
+    text = newText;
+
+    if (state != State::Text)
+        return;
+
+    displayText();
+}
+
+//--------------------------------------------------------------------------------------------------
+void TubeControl::displayClock()
+{
+    tubes->renderClock(currentClockTime);
+    resetFading();
+}
+
+//--------------------------------------------------------------------------------------------------
+void TubeControl::resetFading()
+{
     isFading = true;
     multiplexingCounter = 0;
 
@@ -70,6 +100,7 @@ void TubeControl::multiplexingTimerInterrupt()
     if (state == State::Standby)
         return;
 
+    // calculate compare register value needed for fading and set it
     static const auto StepsPerFadingPeriod = tubes->getStepsPerFadingPeriod();
     if (multiplexingCounter < StepsPerFadingPeriod)
     {
@@ -86,8 +117,10 @@ void TubeControl::multiplexingTimerInterrupt()
         __HAL_TIM_DISABLE_IT(multiplexingPwmTimer, TIM_IT_CC2); // fadingTimChannel
     }
 
+    // do the actual multiplexing
     tubes->multiplexingStep(isFading);
 
+    // prepare digit for fading to it by e.g. writing its data to shift register without latching
     if (isFading)
         tubes->prepareFadingDigit();
 

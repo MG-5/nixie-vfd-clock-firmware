@@ -25,7 +25,10 @@ public:
 protected:
     void setup() override;
     void setBoostConverterState(bool enable) override;
+    void renderInitialization() override;
+
     void multiplexingStep(bool isFading) override;
+    void renderClock(Time &newClock) override;
 
 private:
     static constexpr auto NumberBitsInShiftRegister = 20;
@@ -34,12 +37,12 @@ private:
     util::Gpio heatwireEnable{Digit4_Heatwire_GPIO_Port, Digit4_Heatwire_Pin};
     util::Gpio dots{Dots_GPIO_Port, Dots_Pin};
 
-    std::array<util::Gpio, NumberOfTubes> tubeArray{util::Gpio{Tube0_GPIO_Port, Tube0_Pin}, //
-                                                    util::Gpio{Tube1_GPIO_Port, Tube1_Pin}, //
-                                                    util::Gpio{Tube2_GPIO_Port, Tube2_Pin}, //
-                                                    util::Gpio{Tube3_GPIO_Port, Tube3_Pin}, //
-                                                    util::Gpio{Tube4_GPIO_Port, Tube4_Pin}, //
-                                                    util::Gpio{Tube5_GPIO_Port, Tube5_Pin}};
+    std::array<util::Gpio, NumberOfTubes> gridGpioArray{util::Gpio{Tube0_GPIO_Port, Tube0_Pin}, //
+                                                        util::Gpio{Tube1_GPIO_Port, Tube1_Pin}, //
+                                                        util::Gpio{Tube2_GPIO_Port, Tube2_Pin}, //
+                                                        util::Gpio{Tube3_GPIO_Port, Tube3_Pin}, //
+                                                        util::Gpio{Tube4_GPIO_Port, Tube4_Pin}, //
+                                                        util::Gpio{Tube5_GPIO_Port, Tube5_Pin}};
 
     util::Gpio strobe{Digit3_Strobe_GPIO_Port, Digit3_Strobe_Pin};
 
@@ -48,5 +51,14 @@ private:
 
     void clockPeriod();
     void strobePeriod();
-    void sendSegmentBits(uint32_t bits);
+    void sendSegmentBits(uint32_t bits, uint8_t commatas = 0);
+
+    struct GridData
+    {
+        uint16_t segments = 0;
+        uint8_t commatas = 0b11;
+    };
+
+    std::array<GridData, NumberOfTubes> gridDataArray1{};
+    std::array<GridData, NumberOfTubes> gridDataArray2{};
 };
