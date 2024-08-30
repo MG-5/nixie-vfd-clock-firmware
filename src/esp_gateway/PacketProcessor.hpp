@@ -49,6 +49,15 @@ private:
     void processPacket();
     void sendResponsePacket(PacketHeader &responseHeader);
 
+    void handleStatePacket();
+    void handleBrightnessPacket();
+    void handleLedStatePacket();
+    void handleLedBrightnessPacket();
+    void handleLedSegmentsPacket();
+    void handleClockPacket();
+    void handleTextPacket();
+    void handleResetPacket();
+
     void replaceUmlauts(std::string &text);
 
 public:

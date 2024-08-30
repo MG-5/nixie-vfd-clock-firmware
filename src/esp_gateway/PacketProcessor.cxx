@@ -18,6 +18,7 @@ void PacketProcessor::taskMain(void *)
     }
 }
 
+//-----------------------------------------------------------------------------
 /* possible topics:
     - state
     - brightness
@@ -28,203 +29,35 @@ void PacketProcessor::taskMain(void *)
     - text
     - reset
 */
-//-----------------------------------------------------------------------------
 void PacketProcessor::processPacket()
 {
     // ToDo: send back current state changes
 
-    std::string topicString{reinterpret_cast<char *>(topic), header.topicLength};
-    std::string payloadString = {reinterpret_cast<char *>(payload), header.payloadSize};
+    const std::string topicString{reinterpret_cast<char *>(topic), header.topicLength};
 
     if (topicString == "state")
-    {
-        // make the string lowercase
-        std::transform(payloadString.begin(), payloadString.end(), payloadString.begin(),
-                       ::tolower);
+        handleStatePacket();
 
-        if (payloadString == "standby")
-            tubeControl.updateState(TubeControl::State::Standby);
-
-        else if (payloadString == "clock")
-            tubeControl.updateState(TubeControl::State::Clock);
-
-        else if (payloadString == "text")
-            tubeControl.updateState(TubeControl::State::Text);
-    }
     else if (topicString == "brightness")
-    {
-        // only numbers are allowed in payload
-        if (std::all_of(payloadString.begin(), payloadString.end(), ::isdigit))
-        {
-            // convert string to integer
-            uint8_t newBrightness = std::clamp(std::atoi(payloadString.c_str()), 0, 100);
+        handleBrightnessPacket();
 
-            if (newBrightness == 0)
-                tubeControl.updateState(TubeControl::State::Standby);
-
-            else
-            {
-                tubeControl.dimming.setBrightness(newBrightness);
-
-                // restore last active state
-                if (tubeControl.currentState == TubeControl::State::Standby)
-                    tubeControl.updateState(tubeControl.prevState);
-            }
-        }
-    }
     else if (topicString == "led/state")
-    {
-        // make the string lowercase
-        std::transform(payloadString.begin(), payloadString.end(), payloadString.begin(),
-                       ::tolower);
+        handleLedStatePacket();
 
-        if (payloadString == "off")
-            lightController.updateAnimationType(LightController::AnimationType::Off);
-
-        else if (payloadString == "rainbow")
-            lightController.updateAnimationType(LightController::AnimationType::Rainbow);
-
-        else if (payloadString == "solid")
-            lightController.updateAnimationType(LightController::AnimationType::SolidColor);
-    }
     else if (topicString == "led/brightness")
-    {
-        // only numbers are allowed in payload
-        if (std::all_of(payloadString.begin(), payloadString.end(), ::isdigit))
-        {
-            // convert string to integer
-            uint8_t newBrightness = std::clamp(std::atoi(payloadString.c_str()), 0, 100);
+        handleLedBrightnessPacket();
 
-            if (newBrightness == 0)
-                lightController.updateAnimationType(LightController::AnimationType::Off);
-
-            else
-            {
-                lightController.setBrightness(newBrightness);
-
-                // restore last active animation
-                if (lightController.currentAnimation == LightController::AnimationType::Off)
-                    lightController.updateAnimationType(lightController.prevAnimation);
-            }
-        }
-    }
     else if (topicString == "led/segments")
-    {
-        // format is [R,G,B][R,G,B]...
-        std::string segmentPayload{reinterpret_cast<char *>(payload), header.payloadSize};
+        handleLedSegmentsPacket();
 
-        // simple check for valid payload
-        size_t countOpenBrackets = 0;
-        size_t countCloseBrackets = 0;
-        size_t countCommas = 0;
-        for (const auto &c : segmentPayload)
-        {
-            if (c == '[')
-                countOpenBrackets++;
-            else if (c == ']')
-                countCloseBrackets++;
-            else if (c == ',')
-                countCommas++;
-        }
-
-        if (countOpenBrackets != countCloseBrackets || //
-            countCloseBrackets != NumberOfLeds ||      //
-            countCommas != 2 * NumberOfLeds)
-            return;
-
-        LedSegmentArray segments;
-        size_t ledIndex = 0;
-        // first loop is searching for [
-        // second loop is searching for , and ] to split the segments
-        for (size_t i = 0, lastCommaIndex = 0; i < segmentPayload.size(); i++)
-        {
-            if (segmentPayload[i] == '[')
-            {
-                BgrColor segment;
-                bool foundFirstComma = false;
-                bool foundSecondComma = false;
-                for (size_t j = i + 1; j < segmentPayload.size(); j++)
-                {
-                    if (segmentPayload[j] == ',')
-                    {
-                        if (!foundFirstComma)
-                        { // value for red color
-                            foundFirstComma = true;
-                            segment.red = std::clamp(
-                                std::atoi(segmentPayload.substr(i + 1, j - i - 1).c_str()), 0, 255);
-                            lastCommaIndex = j;
-                        }
-                        else
-                        { // value for green color
-                            foundSecondComma = true;
-                            segment.green = std::clamp(
-                                std::atoi(segmentPayload
-                                              .substr(lastCommaIndex + 1, j - lastCommaIndex - 1)
-                                              .c_str()),
-                                0, 255);
-                            lastCommaIndex = j;
-                        }
-                    }
-                    else if (segmentPayload[j] == ']')
-                    {
-                        if (!foundFirstComma || !foundSecondComma)
-                            return; // ToDo: error handling
-
-                        // value for blue color
-                        segment.blue = std::clamp(
-                            std::atoi(
-                                segmentPayload.substr(lastCommaIndex + 1, j - lastCommaIndex - 1)
-                                    .c_str()),
-                            0, 255);
-                        segments[ledIndex++] = segment;
-                        break;
-                    }
-                    else if (segmentPayload[j] == '[')
-                        return; // ToDo: error handling
-                }
-            }
-        }
-        if (ledIndex != NumberOfLeds)
-            return;
-
-        lightController.setSolidSegments(segments);
-        lightController.updateAnimationType(LightController::AnimationType::SolidColor);
-    }
     else if (topicString == "clock")
-    {
-        if (header.payloadSize != sizeof("HH:MM:SS") - 1)
-            return;
+        handleClockPacket();
 
-        std::string clockPayload{reinterpret_cast<char *>(payload), header.payloadSize};
-        Time newClock{clockPayload};
-        clock.setClock(newClock);
-        syncEventGroup.setBits(sync_events::TimeSyncArrived);
-    }
     else if (topicString == "text")
-    {
-        std::string textPayload{
-            reinterpret_cast<char *>(payload),
-            std::min(header.payloadSize, (uint16_t)(AbstractTube ::NumberOfTubes * 2))};
-        // replace äöü with ae oe ue
-        replaceUmlauts(textPayload);
+        handleTextPacket();
 
-        if (textPayload.size() < 6)
-        {
-            // add spaces to the end of the string to make it 6 characters long to fit on 6 tubes
-            textPayload.append(6 - textPayload.size(), ' ');
-        }
-        tubeControl.setText(textPayload);
-
-        if (tubeControl.currentState != TubeControl::State::Text)
-        {
-            tubeControl.currentState = TubeControl::State::Text;
-            tubeControl.notify(1, util::wrappers::NotifyAction::SetBits);
-        }
-    }
     else if (topicString == "reset")
-    {
-        NVIC_SystemReset();
-    }
+        handleResetPacket();
 }
 
 //-----------------------------------------------------------------------------
@@ -313,4 +146,215 @@ void PacketProcessor::replaceUmlauts(std::string &text)
                 break;
         }
     }
+}
+
+//-----------------------------------------------------------------------------
+void PacketProcessor::sendResponsePacket(PacketHeader &responseHeader)
+{
+}
+
+//-----------------------------------------------------------------------------
+void PacketProcessor::handleStatePacket()
+{
+    // make the string lowercase
+    std::string payloadString = {reinterpret_cast<char *>(payload), header.payloadSize};
+    std::transform(payloadString.begin(), payloadString.end(), payloadString.begin(), ::tolower);
+
+    if (payloadString == "standby")
+        tubeControl.updateState(TubeControl::State::Standby);
+
+    else if (payloadString == "clock")
+        tubeControl.updateState(TubeControl::State::Clock);
+
+    else if (payloadString == "text")
+        tubeControl.updateState(TubeControl::State::Text);
+}
+
+//-----------------------------------------------------------------------------
+void PacketProcessor::handleBrightnessPacket()
+{
+    // only numbers are allowed in payload
+    const std::string payloadString = {reinterpret_cast<char *>(payload), header.payloadSize};
+    if (!std::all_of(payloadString.begin(), payloadString.end(), ::isdigit))
+        return;
+
+    // convert string to integer
+    uint8_t newBrightness = std::clamp(std::atoi(payloadString.c_str()), 0, 100);
+
+    if (newBrightness == 0)
+        tubeControl.updateState(TubeControl::State::Standby);
+
+    else
+    {
+        tubeControl.dimming.setBrightness(newBrightness);
+
+        // restore last active state
+        if (tubeControl.currentState == TubeControl::State::Standby)
+            tubeControl.updateState(tubeControl.prevState);
+    }
+}
+
+//-----------------------------------------------------------------------------
+void PacketProcessor::handleLedStatePacket()
+{
+    // make the string lowercase
+    std::string payloadString = {reinterpret_cast<char *>(payload), header.payloadSize};
+    std::transform(payloadString.begin(), payloadString.end(), payloadString.begin(), ::tolower);
+
+    if (payloadString == "off")
+        lightController.updateAnimationType(LightController::AnimationType::Off);
+
+    else if (payloadString == "rainbow")
+        lightController.updateAnimationType(LightController::AnimationType::Rainbow);
+
+    else if (payloadString == "solid")
+        lightController.updateAnimationType(LightController::AnimationType::SolidColor);
+}
+
+//-----------------------------------------------------------------------------
+void PacketProcessor::handleLedBrightnessPacket()
+{
+    // only numbers are allowed in payload
+    const std::string payloadString = {reinterpret_cast<char *>(payload), header.payloadSize};
+    if (std::all_of(payloadString.begin(), payloadString.end(), ::isdigit))
+    {
+        // convert string to integer
+        uint8_t newBrightness = std::clamp(std::atoi(payloadString.c_str()), 0, 100);
+
+        if (newBrightness == 0)
+            lightController.updateAnimationType(LightController::AnimationType::Off);
+
+        else
+        {
+            lightController.setBrightness(newBrightness);
+
+            // restore last active animation
+            if (lightController.currentAnimation == LightController::AnimationType::Off)
+                lightController.updateAnimationType(lightController.prevAnimation);
+        }
+    }
+}
+
+//-----------------------------------------------------------------------------
+void PacketProcessor::handleLedSegmentsPacket()
+{
+    // format is [R,G,B][R,G,B]...
+    std::string segmentPayload{reinterpret_cast<char *>(payload), header.payloadSize};
+
+    // simple check for valid payload
+    size_t countOpenBrackets = 0;
+    size_t countCloseBrackets = 0;
+    size_t countCommas = 0;
+    for (const auto &c : segmentPayload)
+    {
+        if (c == '[')
+            countOpenBrackets++;
+        else if (c == ']')
+            countCloseBrackets++;
+        else if (c == ',')
+            countCommas++;
+    }
+
+    if (countOpenBrackets != countCloseBrackets || //
+        countCloseBrackets != NumberOfLeds ||      //
+        countCommas != 2 * NumberOfLeds)
+        return;
+
+    LedSegmentArray segments;
+    size_t ledIndex = 0;
+    // first loop is searching for [
+    // second loop is searching for , and ] to split the segments
+    for (size_t i = 0, lastCommaIndex = 0; i < segmentPayload.size(); i++)
+    {
+        if (segmentPayload[i] == '[')
+        {
+            BgrColor segment;
+            bool foundFirstComma = false;
+            bool foundSecondComma = false;
+            for (size_t j = i + 1; j < segmentPayload.size(); j++)
+            {
+                if (segmentPayload[j] == ',')
+                {
+                    if (!foundFirstComma)
+                    { // value for red color
+                        foundFirstComma = true;
+                        segment.red = std::clamp(
+                            std::atoi(segmentPayload.substr(i + 1, j - i - 1).c_str()), 0, 255);
+                        lastCommaIndex = j;
+                    }
+                    else
+                    { // value for green color
+                        foundSecondComma = true;
+                        segment.green = std::clamp(
+                            std::atoi(
+                                segmentPayload.substr(lastCommaIndex + 1, j - lastCommaIndex - 1)
+                                    .c_str()),
+                            0, 255);
+                        lastCommaIndex = j;
+                    }
+                }
+                else if (segmentPayload[j] == ']')
+                {
+                    if (!foundFirstComma || !foundSecondComma)
+                        return; // ToDo: error handling
+
+                    // value for blue color
+                    segment.blue = std::clamp(
+                        std::atoi(segmentPayload.substr(lastCommaIndex + 1, j - lastCommaIndex - 1)
+                                      .c_str()),
+                        0, 255);
+                    segments[ledIndex++] = segment;
+                    break;
+                }
+                else if (segmentPayload[j] == '[')
+                    return; // ToDo: error handling
+            }
+        }
+    }
+    if (ledIndex != NumberOfLeds)
+        return;
+
+    lightController.setSolidSegments(segments);
+    lightController.updateAnimationType(LightController::AnimationType::SolidColor);
+}
+
+//-----------------------------------------------------------------------------
+void PacketProcessor::handleClockPacket()
+{
+    if (header.payloadSize != sizeof("HH:MM:SS") - 1)
+        return;
+
+    std::string clockPayload{reinterpret_cast<char *>(payload), header.payloadSize};
+    Time newClock{clockPayload};
+    clock.setClock(newClock);
+    syncEventGroup.setBits(sync_events::TimeSyncArrived);
+}
+
+//-----------------------------------------------------------------------------
+void PacketProcessor::handleTextPacket()
+{
+    std::string textPayload{
+        reinterpret_cast<char *>(payload),
+        std::min(header.payloadSize, (uint16_t)(AbstractTube ::NumberOfTubes * 2))};
+    // replace äöü with ae oe ue
+    replaceUmlauts(textPayload);
+
+    if (textPayload.size() < 6)
+    {
+        // add spaces to the end of the string to make it 6 characters long to fit on 6 tubes
+        textPayload.append(6 - textPayload.size(), ' ');
+    }
+    tubeControl.setText(textPayload);
+
+    if (tubeControl.currentState != TubeControl::State::Text)
+    {
+        tubeControl.currentState = TubeControl::State::Text;
+        tubeControl.notify(1, util::wrappers::NotifyAction::SetBits);
+    }
+}
+
+//-----------------------------------------------------------------------------
+void PacketProcessor::handleResetPacket()
+{
+    NVIC_SystemReset();
 }
