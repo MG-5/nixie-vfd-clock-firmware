@@ -110,8 +110,85 @@ void PacketProcessor::processPacket()
     }
     else if (topicString == "led/segments")
     {
-        asm("nop");
-        // ToDo
+        // format is [R,G,B][R,G,B]...
+        std::string segmentPayload{reinterpret_cast<char *>(payload), header.payloadSize};
+
+        // simple check for valid payload
+        size_t countOpenBrackets = 0;
+        size_t countCloseBrackets = 0;
+        size_t countCommas = 0;
+        for (const auto &c : segmentPayload)
+        {
+            if (c == '[')
+                countOpenBrackets++;
+            else if (c == ']')
+                countCloseBrackets++;
+            else if (c == ',')
+                countCommas++;
+        }
+
+        if (countOpenBrackets != countCloseBrackets || //
+            countCloseBrackets != NumberOfLeds ||      //
+            countCommas != 2 * NumberOfLeds)
+            return;
+
+        LedSegmentArray segments;
+        size_t ledIndex = 0;
+        // first loop is searching for [
+        // second loop is searching for , and ] to split the segments
+        for (size_t i = 0, lastCommaIndex = 0; i < segmentPayload.size(); i++)
+        {
+            if (segmentPayload[i] == '[')
+            {
+                BgrColor segment;
+                bool foundFirstComma = false;
+                bool foundSecondComma = false;
+                for (size_t j = i + 1; j < segmentPayload.size(); j++)
+                {
+                    if (segmentPayload[j] == ',')
+                    {
+                        if (!foundFirstComma)
+                        { // value for red color
+                            foundFirstComma = true;
+                            segment.red = std::clamp(
+                                std::atoi(segmentPayload.substr(i + 1, j - i - 1).c_str()), 0, 255);
+                            lastCommaIndex = j;
+                        }
+                        else
+                        { // value for green color
+                            foundSecondComma = true;
+                            segment.green = std::clamp(
+                                std::atoi(segmentPayload
+                                              .substr(lastCommaIndex + 1, j - lastCommaIndex - 1)
+                                              .c_str()),
+                                0, 255);
+                            lastCommaIndex = j;
+                        }
+                    }
+                    else if (segmentPayload[j] == ']')
+                    {
+                        if (!foundFirstComma || !foundSecondComma)
+                            return; // ToDo: error handling
+
+                        // value for blue color
+                        segment.blue = std::clamp(
+                            std::atoi(
+                                segmentPayload.substr(lastCommaIndex + 1, j - lastCommaIndex - 1)
+                                    .c_str()),
+                            0, 255);
+                        segments[ledIndex++] = segment;
+                        break;
+                    }
+                    else if (segmentPayload[j] == '[')
+                        return; // ToDo: error handling
+                }
+            }
+        }
+        if (ledIndex != NumberOfLeds)
+            return;
+
+        lightController.setSolidSegments(segments);
+        lightController.updateAnimationType(LightController::AnimationType::SolidColor);
     }
     else if (topicString == "clock")
     {

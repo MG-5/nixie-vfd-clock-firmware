@@ -46,6 +46,11 @@ public:
         ledDriver.setBrightness(percentage);
     }
 
+    void setSolidSegments(const LedSegmentArray &segments)
+    {
+        solidColorLedSegments = segments;
+    }
+
 protected:
     [[noreturn]] void taskMain(void *) override;
 
