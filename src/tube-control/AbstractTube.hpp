@@ -18,9 +18,9 @@ public:
 
     AbstractTube() = default;
 
-    // initialization
-    virtual void setup() = 0;
-    virtual void setBoostConverterState(bool enable) = 0;
+    // general
+    virtual void powerOn() = 0;
+    virtual void powerOff() = 0;
     virtual void renderInitialization() = 0;
 
     // update step

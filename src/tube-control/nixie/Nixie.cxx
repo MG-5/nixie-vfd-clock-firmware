@@ -4,15 +4,15 @@
 #include "units/si/scalar.hpp"
 #include "units/si/time.hpp"
 
-void Nixie::setup()
+void Nixie::powerOn()
 {
-    setBoostConverterState(true);
+    enableBoostConverter.write(true);
 }
 
 //--------------------------------------------------------------------------------------------------
-void Nixie::setBoostConverterState(bool enable)
+void Nixie::powerOff()
 {
-    enableBoostConverter.write(enable);
+    enableBoostConverter.write(false);
 }
 
 //--------------------------------------------------------------------------------------------------

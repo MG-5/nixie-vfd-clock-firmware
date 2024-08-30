@@ -5,10 +5,14 @@
 
 void TubeControl::taskMain(void *)
 {
-    // wait for steady voltages
+    // wait for steady steady input
     vTaskDelay(toOsTicks(100.0_ms));
-    tubes->setup();
+    tubes->powerOn();
+
+    // wait for tubes to warm up
     vTaskDelay(toOsTicks(100.0_ms));
+
+    // show gimmick initialization
     // tubes->renderInitialization();
     // vTaskDelay(toOsTicks(1.0_s));
 
@@ -26,18 +30,18 @@ void TubeControl::taskMain(void *)
         case State::Standby:
             HAL_TIM_OC_Stop(multiplexingPwmTimer, fadingTimChannel);
             tubes->shutdownAllTubesAndDots();
-            tubes->setBoostConverterState(false);
+            tubes->powerOff();
             break;
 
         case State::Clock:
             HAL_TIM_OC_Start(multiplexingPwmTimer, fadingTimChannel);
-            tubes->setBoostConverterState(true);
+            tubes->powerOn();
             displayClock();
             break;
 
         case State::Text:
             HAL_TIM_OC_Start(multiplexingPwmTimer, fadingTimChannel);
-            tubes->setBoostConverterState(true);
+            tubes->powerOn();
             displayText();
             break;
         }

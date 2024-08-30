@@ -23,8 +23,8 @@ public:
     };
 
 protected:
-    void setup() override;
-    void setBoostConverterState(bool enable) override;
+    void powerOn() override;
+    void powerOff() override;
     void renderInitialization() override;
 
     void multiplexingStep(bool isFading) override;

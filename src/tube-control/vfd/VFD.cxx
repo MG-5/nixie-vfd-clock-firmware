@@ -6,16 +6,17 @@
 #include "units/si/time.hpp"
 #include "util/MapValue.hpp"
 
-void VFD::setup()
+void VFD::powerOn()
 {
-    setBoostConverterState(true);
+    enableBoostConverter.write(true);
+    heatwireEnable.write(true);
 }
 
 //--------------------------------------------------------------------------------------------------
-void VFD::setBoostConverterState(bool enable)
+void VFD::powerOff()
 {
-    enableBoostConverter.write(enable);
-    heatwireEnable.write(enable);
+    enableBoostConverter.write(false);
+    heatwireEnable.write(false);
 }
 
 //--------------------------------------------------------------------------------------------------
