@@ -125,13 +125,15 @@ void PacketProcessor::processPacket()
     }
     else if (topicString == "text")
     {
-        std::string textPayload{reinterpret_cast<char *>(payload), header.payloadSize};
+        std::string textPayload{
+            reinterpret_cast<char *>(payload),
+            std::min(header.payloadSize, (uint16_t)(AbstractTube ::NumberOfTubes * 2))};
         // replace äöü with ae oe ue
         replaceUmlauts(textPayload);
 
         if (textPayload.size() < 6)
         {
-            // add spaces to the end of the string to make it 6 characters long to fit on six tubes
+            // add spaces to the end of the string to make it 6 characters long to fit on 6 tubes
             textPayload.append(6 - textPayload.size(), ' ');
         }
         tubeControl.setText(textPayload);
