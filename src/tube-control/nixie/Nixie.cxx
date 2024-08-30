@@ -85,6 +85,13 @@ void Nixie::renderClock(Time &newClock)
 }
 
 //--------------------------------------------------------------------------------------------------
+void Nixie::renderText(const std::string &text)
+{
+    // Nixie tubes do not support text rendering so turn off all tubes
+    shutdownAllTubesAndDots();
+}
+
+//--------------------------------------------------------------------------------------------------
 void Nixie::rejuvenateStep()
 {
     static uint8_t digit = 0;

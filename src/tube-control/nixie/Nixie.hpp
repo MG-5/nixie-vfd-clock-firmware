@@ -23,6 +23,7 @@ protected:
 
     void multiplexingStep(bool isFading) override;
     void renderClock(Time &newClock) override;
+    void renderText(const std::string &text) override;
 
     void shutdownCurrentTubeAndDot() override;
     void shutdownAllTubesAndDots() override;

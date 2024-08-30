@@ -24,11 +24,14 @@ void PacketProcessor::taskMain(void *)
     - led/state
     - led/segments
     - clock
+    - text
     - reset
 */
 //-----------------------------------------------------------------------------
 void PacketProcessor::processPacket()
 {
+    // ToDO: send back current state changes
+
     std::string topicString{reinterpret_cast<char *>(topic), header.topicLength};
     std::string payloadString = {reinterpret_cast<char *>(payload), header.payloadSize};
 
@@ -45,9 +48,7 @@ void PacketProcessor::processPacket()
             tubeControl.state = TubeControl::State::Clock;
 
         else if (payloadString == "text")
-            // ToDo
-            // tubeControl.state = TubeControl::State::Text;
-            asm("nop");
+            tubeControl.state = TubeControl::State::Text;
 
         tubeControl.notify(1, util::wrappers::NotifyAction::SetBits);
     }
@@ -90,6 +91,25 @@ void PacketProcessor::processPacket()
         Time newClock{clockPayload};
         clock.setClock(newClock);
         syncEventGroup.setBits(sync_events::TimeSyncArrived);
+    }
+    else if (topicString == "text")
+    {
+        std::string textPayload{reinterpret_cast<char *>(payload), header.payloadSize};
+        // replace äöü with ae oe ue
+        replaceUmlauts(textPayload);
+
+        if (textPayload.size() < 6)
+        {
+            // add spaces to the end of the string to make it 6 characters long to fit on six tubes
+            textPayload.append(6 - textPayload.size(), ' ');
+        }
+        tubeControl.setText(textPayload);
+
+        if (tubeControl.state != TubeControl::State::Text)
+        {
+            tubeControl.state = TubeControl::State::Text;
+            tubeControl.notify(1, util::wrappers::NotifyAction::SetBits);
+        }
     }
     else if (topicString == "reset")
     {
@@ -161,4 +181,26 @@ bool PacketProcessor::extractPacketFromReceiveBuffer()
 
     bufferStartPosition += sizeof(PacketHeader) + header.topicLength + header.payloadSize;
     return true;
+}
+
+//-----------------------------------------------------------------------------
+void PacketProcessor::replaceUmlauts(std::string &text)
+{
+    std::array<std::pair<std::string, std::string>, 7> umlauts = {
+        std::make_pair("ä", "ae"), std::make_pair("ö", "oe"), std::make_pair("ü", "ue"),
+        std::make_pair("ß", "ss"), std::make_pair("Ä", "AE"), std::make_pair("Ö", "OE"),
+        std::make_pair("Ü", "UE")};
+
+    for (const auto &[umlaut, replacement] : umlauts)
+    {
+        while (true)
+        {
+            auto pos = text.find(umlaut);
+            if (pos != std::string::npos)
+                text.replace(pos, 2, replacement);
+
+            else
+                break;
+        }
+    }
 }

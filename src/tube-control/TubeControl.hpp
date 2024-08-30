@@ -30,6 +30,7 @@ public:
     void fadingTimerInterrupt();
 
     void setClock(Time clockTime);
+    void setText(std::string &newText);
 
     Dimming dimming;
 
@@ -55,7 +56,9 @@ private:
     bool allowInterruptCall = false;
 
     Time currentClockTime;
+    std::string text = "";
 
     void displayClock();
+    void displayText();
     void resetFading();
 };

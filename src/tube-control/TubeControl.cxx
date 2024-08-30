@@ -38,6 +38,7 @@ void TubeControl::taskMain(void *)
         case State::Text:
             HAL_TIM_OC_Start(multiplexingPwmTimer, fadingTimChannel);
             tubes->setBoostConverterState(true);
+            displayText();
             break;
         }
     }
@@ -81,6 +82,12 @@ void TubeControl::setText(std::string &newText)
 void TubeControl::displayClock()
 {
     tubes->renderClock(currentClockTime);
+    resetFading();
+}
+
+void TubeControl::displayText()
+{
+    tubes->renderText(text);
     resetFading();
 }
 

@@ -90,6 +90,20 @@ void VFD::renderClock(Time &newClock)
 }
 
 //--------------------------------------------------------------------------------------------------
+void VFD::renderText(const std::string &text)
+{
+    gridDataArray1 = gridDataArray2;
+
+    for (auto i = 0; i < NumberOfTubes; i++)
+    {
+        gridDataArray2[i].segments = font.getGlyph(text[i]);
+        gridDataArray2[i].commatas = 0;
+    }
+
+    shouldDotsLights = false;
+}
+
+//--------------------------------------------------------------------------------------------------
 inline void VFD::shutdownCurrentTubeAndDot()
 {
     gridGpioArray[tubeIndex].write(false);

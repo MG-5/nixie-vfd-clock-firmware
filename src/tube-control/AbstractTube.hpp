@@ -26,6 +26,7 @@ public:
     // update step
     virtual void multiplexingStep(bool isFading = false) = 0;
     virtual void renderClock(Time &newClock) = 0;
+    virtual void renderText(const std::string &text) = 0;
 
     void setDotState(bool enable)
     {

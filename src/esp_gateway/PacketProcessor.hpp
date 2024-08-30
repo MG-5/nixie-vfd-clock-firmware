@@ -16,7 +16,7 @@ class PacketProcessor : public util::wrappers::TaskWithMemberFunctionBase
 public:
     PacketProcessor(UART_HandleTypeDef *espUartPeripherie, Clock &clock, TubeControl &tubeControl,
                     LightController &lightController)
-        : TaskWithMemberFunctionBase("packetProcessor", 128, osPriorityAboveNormal), //
+        : TaskWithMemberFunctionBase("packetProcessor", 256, osPriorityAboveNormal), //
           espUartPeripherie(espUartPeripherie),                                      //
           clock(clock),                                                              //
           tubeControl(tubeControl),                                                  //
@@ -48,6 +48,8 @@ private:
     bool extractPacketFromReceiveBuffer();
     void processPacket();
     void sendResponsePacket(PacketHeader &responseHeader);
+
+    void replaceUmlauts(std::string &text);
 
 public:
     UartRx uartRx{espUartPeripherie, rxStream};
