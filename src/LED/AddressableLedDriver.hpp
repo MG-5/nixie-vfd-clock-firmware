@@ -22,6 +22,12 @@ public:
     static constexpr auto LedPwmResolutionBits = 8;
 
     void sendBuffer(LedSegmentArray &ledSegmentArray);
+    void sendZeroBuffer();
+
+    void setBrightness(uint8_t percentage)
+    {
+        brightnessPercentage = percentage;
+    }
 
 private:
     SPI_HandleTypeDef *spiPeripherie = nullptr;
@@ -41,6 +47,8 @@ private:
     using LedSpiDataArray = std::array<LedSpiData, NumberOfLeds>;
 
     LedSpiDataArray ledSpiData;
+    LedSpiDataArray zeroData{};
+    uint8_t brightnessPercentage = 80;
 
     static constexpr auto NumberOfEndFrames = (NumberOfLeds + 15) / 16;
     std::array<uint8_t, NumberOfEndFrames> endFrames{};
@@ -49,6 +57,6 @@ private:
 
     void sendStartFrame();
 
-    /// convert LED data to gamma corrected colors and put it to SPI-related array
-    void convertToGammaCorrectedColors(LedSegmentArray &source, LedSpiDataArray &destination);
+    /// convert LED data to brightness and gamma corrected colors and put it to SPI-related array
+    void applyBrightnessAndGammaCorrection(LedSegmentArray &source, LedSpiDataArray &destination);
 };

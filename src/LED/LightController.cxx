@@ -14,26 +14,25 @@ using util::wrappers::NotifyAction;
     solidColorLedSegments.fill({0, 0, 255});
     while (true)
     {
-        units::si::Time targetAnimationDelay = 20.0_ms;
+        units::si::Time targetAnimationDelay = 50.0_ms;
 
         switch (currentAnimation)
         {
         case AnimationType::Off:
-            targetLedSegments.fill({0, 0, 0});
+            ledDriver.sendZeroBuffer();
             break;
 
         case AnimationType::Rainbow:
             rainbowAnimation.doAnimationStep();
             targetAnimationDelay = rainbowAnimation.getDelay();
-
+            ledDriver.sendBuffer(targetLedSegments);
             break;
 
         case AnimationType::SolidColor:
-            targetLedSegments = solidColorLedSegments;
+            ledDriver.sendBuffer(solidColorLedSegments);
             break;
         }
 
-        ledDriver.sendBuffer(targetLedSegments);
         vTaskDelay(toOsTicks(targetAnimationDelay));
     }
 }

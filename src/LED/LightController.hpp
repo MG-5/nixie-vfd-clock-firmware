@@ -31,6 +31,20 @@ public:
     };
 
     AnimationType currentAnimation{AnimationType::Rainbow};
+    AnimationType prevAnimation{AnimationType::Rainbow};
+
+    void updateAnimationType(AnimationType newAnimationType)
+    {
+        if (currentAnimation != AnimationType::Off)
+            prevAnimation = currentAnimation; // save last active state
+
+        currentAnimation = newAnimationType;
+    }
+
+    void setBrightness(uint8_t percentage)
+    {
+        ledDriver.setBrightness(percentage);
+    }
 
 protected:
     [[noreturn]] void taskMain(void *) override;

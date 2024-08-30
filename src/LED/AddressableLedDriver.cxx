@@ -20,21 +20,34 @@ inline void AddressableLedDriver::sendStartFrame()
 }
 
 //--------------------------------------------------------------------------------------------------
-inline void AddressableLedDriver::convertToGammaCorrectedColors(LedSegmentArray &source,
-                                                                LedSpiDataArray &destination)
+inline void AddressableLedDriver::applyBrightnessAndGammaCorrection(LedSegmentArray &source,
+                                                                    LedSpiDataArray &destination)
 {
     for (size_t i = 0; i < destination.size(); i++)
-        destination[i].applyGammaCorrection(source[i]);
+        destination[i].applyGammaCorrection(source[i] * brightnessPercentage);
 }
 
 //--------------------------------------------------------------------------------------------------
 void AddressableLedDriver::sendBuffer(LedSegmentArray &ledSegmentArray)
 {
-    convertToGammaCorrectedColors(ledSegmentArray, ledSpiData);
+    applyBrightnessAndGammaCorrection(ledSegmentArray, ledSpiData);
     sendStartFrame();
 
     HAL_SPI_Transmit_IT(spiPeripherie, reinterpret_cast<uint8_t *>(ledSpiData.data()),
                         ledSpiData.size() * sizeof(LedSpiData));
+    ulTaskNotifyTake(pdTRUE, toOsTicks(Timeout));
+
+    HAL_SPI_Transmit_IT(spiPeripherie, endFrames.data(), NumberOfEndFrames);
+    ulTaskNotifyTake(pdTRUE, toOsTicks(Timeout));
+}
+
+//--------------------------------------------------------------------------------------------------
+void AddressableLedDriver::sendZeroBuffer()
+{
+    sendStartFrame();
+
+    HAL_SPI_Transmit_IT(spiPeripherie, reinterpret_cast<uint8_t *>(zeroData.data()),
+                        zeroData.size() * sizeof(LedSpiData));
     ulTaskNotifyTake(pdTRUE, toOsTicks(Timeout));
 
     HAL_SPI_Transmit_IT(spiPeripherie, endFrames.data(), NumberOfEndFrames);

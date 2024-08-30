@@ -21,7 +21,7 @@ void TubeControl::taskMain(void *)
     {
         notifyWait(0, UINT32_MAX, nullptr, portMAX_DELAY);
 
-        switch (state)
+        switch (currentState)
         {
         case State::Standby:
             HAL_TIM_OC_Stop(multiplexingPwmTimer, fadingTimChannel);
@@ -61,7 +61,7 @@ void TubeControl::setClock(Time clockTime)
 {
     currentClockTime = clockTime;
 
-    if (state != State::Clock)
+    if (currentState != State::Clock)
         return;
 
     displayClock();
@@ -72,7 +72,7 @@ void TubeControl::setText(std::string &newText)
 {
     text = newText;
 
-    if (state != State::Text)
+    if (currentState != State::Text)
         return;
 
     displayText();
@@ -104,7 +104,7 @@ void TubeControl::resetFading()
 //--------------------------------------------------------------------------------------------------
 void TubeControl::multiplexingTimerInterrupt()
 {
-    if (state == State::Standby)
+    if (currentState == State::Standby)
         return;
 
     // calculate compare register value needed for fading and set it

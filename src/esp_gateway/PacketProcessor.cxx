@@ -23,6 +23,7 @@ void PacketProcessor::taskMain(void *)
     - brightness
     - led/state
     - led/segments
+    - led/brightness
     - clock
     - text
     - reset
@@ -30,7 +31,7 @@ void PacketProcessor::taskMain(void *)
 //-----------------------------------------------------------------------------
 void PacketProcessor::processPacket()
 {
-    // ToDO: send back current state changes
+    // ToDo: send back current state changes
 
     std::string topicString{reinterpret_cast<char *>(topic), header.topicLength};
     std::string payloadString = {reinterpret_cast<char *>(payload), header.payloadSize};
@@ -42,15 +43,13 @@ void PacketProcessor::processPacket()
                        ::tolower);
 
         if (payloadString == "standby")
-            tubeControl.state = TubeControl::State::Standby;
+            tubeControl.updateState(TubeControl::State::Standby);
 
         else if (payloadString == "clock")
-            tubeControl.state = TubeControl::State::Clock;
+            tubeControl.updateState(TubeControl::State::Clock);
 
         else if (payloadString == "text")
-            tubeControl.state = TubeControl::State::Text;
-
-        tubeControl.notify(1, util::wrappers::NotifyAction::SetBits);
+            tubeControl.updateState(TubeControl::State::Text);
     }
     else if (topicString == "brightness")
     {
@@ -58,8 +57,19 @@ void PacketProcessor::processPacket()
         if (std::all_of(payloadString.begin(), payloadString.end(), ::isdigit))
         {
             // convert string to integer
-            uint8_t newBrightness = std::clamp(std::atoi(payloadString.c_str()), 1, 100);
-            tubeControl.dimming.setBrightness(newBrightness);
+            uint8_t newBrightness = std::clamp(std::atoi(payloadString.c_str()), 0, 100);
+
+            if (newBrightness == 0)
+                tubeControl.updateState(TubeControl::State::Standby);
+
+            else
+            {
+                tubeControl.dimming.setBrightness(newBrightness);
+
+                // restore last active state
+                if (tubeControl.currentState == TubeControl::State::Standby)
+                    tubeControl.updateState(tubeControl.prevState);
+            }
         }
     }
     else if (topicString == "led/state")
@@ -69,13 +79,34 @@ void PacketProcessor::processPacket()
                        ::tolower);
 
         if (payloadString == "off")
-            lightController.currentAnimation = LightController::AnimationType::Off;
+            lightController.updateAnimationType(LightController::AnimationType::Off);
 
         else if (payloadString == "rainbow")
-            lightController.currentAnimation = LightController::AnimationType::Rainbow;
+            lightController.updateAnimationType(LightController::AnimationType::Rainbow);
 
         else if (payloadString == "solid")
-            lightController.currentAnimation = LightController::AnimationType::SolidColor;
+            lightController.updateAnimationType(LightController::AnimationType::SolidColor);
+    }
+    else if (topicString == "led/brightness")
+    {
+        // only numbers are allowed in payload
+        if (std::all_of(payloadString.begin(), payloadString.end(), ::isdigit))
+        {
+            // convert string to integer
+            uint8_t newBrightness = std::clamp(std::atoi(payloadString.c_str()), 0, 100);
+
+            if (newBrightness == 0)
+                lightController.updateAnimationType(LightController::AnimationType::Off);
+
+            else
+            {
+                lightController.setBrightness(newBrightness);
+
+                // restore last active animation
+                if (lightController.currentAnimation == LightController::AnimationType::Off)
+                    lightController.updateAnimationType(lightController.prevAnimation);
+            }
+        }
     }
     else if (topicString == "led/segments")
     {
@@ -105,9 +136,9 @@ void PacketProcessor::processPacket()
         }
         tubeControl.setText(textPayload);
 
-        if (tubeControl.state != TubeControl::State::Text)
+        if (tubeControl.currentState != TubeControl::State::Text)
         {
-            tubeControl.state = TubeControl::State::Text;
+            tubeControl.currentState = TubeControl::State::Text;
             tubeControl.notify(1, util::wrappers::NotifyAction::SetBits);
         }
     }

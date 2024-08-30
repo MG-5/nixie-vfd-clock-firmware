@@ -39,7 +39,19 @@ public:
         Standby,
         Clock,
         Text
-    } state = State::Clock;
+    };
+
+    State currentState = State::Clock;
+    State prevState = State::Clock;
+
+    void updateState(State newState)
+    {
+        if (currentState != State::Standby)
+            prevState = currentState; // save last active state
+
+        currentState = newState;
+        notify(1, util::wrappers::NotifyAction::SetBits);
+    }
 
 protected:
     void taskMain(void *) override;

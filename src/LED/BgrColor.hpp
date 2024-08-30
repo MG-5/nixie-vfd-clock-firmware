@@ -17,6 +17,14 @@ struct __attribute((packed)) BgrColor
         red = static_cast<decltype(red)>(static_cast<T>(red) * val);
         return *this;
     }
+
+    constexpr BgrColor &operator*=(const uint8_t &percentage)
+    {
+        blue = (blue * percentage) / 100;
+        green = (green * percentage) / 100;
+        red = (red * percentage) / 100;
+        return *this;
+    }
 };
 
 inline constexpr BgrColor operator*(BgrColor lhs, const float val)
@@ -25,9 +33,20 @@ inline constexpr BgrColor operator*(BgrColor lhs, const float val)
     return lhs;
 }
 
+inline constexpr BgrColor operator*(BgrColor lhs, const uint8_t percentage)
+{
+    lhs *= percentage;
+    return lhs;
+}
+
 inline constexpr BgrColor operator*(const float val, const BgrColor rhs)
 {
     return rhs * val;
+}
+
+inline constexpr BgrColor operator*(const uint8_t percentage, const BgrColor rhs)
+{
+    return rhs * percentage;
 }
 
 inline constexpr BgrColor operator+(const BgrColor &lhs, const BgrColor &rhs)
