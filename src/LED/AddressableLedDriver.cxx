@@ -13,17 +13,10 @@ inline void AddressableLedDriver::sendStartFrame()
 {
     uint32_t startFrame = 0;
 
-    HAL_StatusTypeDef result = //
-        HAL_SPI_Transmit_IT(spiPeripherie, reinterpret_cast<uint8_t *>(&startFrame),
-                            sizeof(startFrame));
+    HAL_SPI_Transmit_IT(spiPeripherie, reinterpret_cast<uint8_t *>(&startFrame),
+                        sizeof(startFrame));
 
     ulTaskNotifyTake(pdTRUE, toOsTicks(Timeout));
-
-    if (result != HAL_OK)
-    {
-        // ToDo: report error in a such way
-        // but it is not super critical for system, so no further handlings
-    }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -40,17 +33,10 @@ void AddressableLedDriver::sendBuffer(LedSegmentArray &ledSegmentArray)
     convertToGammaCorrectedColors(ledSegmentArray, ledSpiData);
     sendStartFrame();
 
-    HAL_StatusTypeDef result = HAL_OK;
-
-    result = HAL_SPI_Transmit_IT(spiPeripherie, reinterpret_cast<uint8_t *>(ledSpiData.data()),
-                                 ledSpiData.size() * sizeof(LedSpiData));
+    HAL_SPI_Transmit_IT(spiPeripherie, reinterpret_cast<uint8_t *>(ledSpiData.data()),
+                        ledSpiData.size() * sizeof(LedSpiData));
     ulTaskNotifyTake(pdTRUE, toOsTicks(Timeout));
 
-    result = HAL_SPI_Transmit_IT(spiPeripherie, endFrames.data(), NumberOfEndFrames);
+    HAL_SPI_Transmit_IT(spiPeripherie, endFrames.data(), NumberOfEndFrames);
     ulTaskNotifyTake(pdTRUE, toOsTicks(Timeout));
-    if (result != HAL_OK)
-    {
-        // ToDo: report error in a such way
-        // but it is not super critical for system, so no further handlings
-    }
 }

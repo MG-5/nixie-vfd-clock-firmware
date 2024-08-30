@@ -1,9 +1,9 @@
 #pragma once
 
-#include "GammaCorrection.hpp"
 #include "LedDataTypes.hpp"
 #include "core/SafeAssert.h"
 #include "units/si/time.hpp"
+#include "util/led/GammaCorrection.hpp"
 
 #include "stm32f1xx_hal.h"
 
@@ -19,6 +19,8 @@ public:
         endFrames.fill(0xFF);
     };
 
+    static constexpr auto LedPwmResolutionBits = 8;
+
     void sendBuffer(LedSegmentArray &ledSegmentArray);
 
 private:
@@ -31,9 +33,9 @@ private:
 
         void applyGammaCorrection(BgrColor newColor)
         {
-            color.blue = GammaCorrectionLUT[newColor.blue];
-            color.green = GammaCorrectionLUT[newColor.green];
-            color.red = GammaCorrectionLUT[newColor.red];
+            color.blue = GammaCorrection.LookUpTable[newColor.blue];
+            color.green = GammaCorrection.LookUpTable[newColor.green];
+            color.red = GammaCorrection.LookUpTable[newColor.red];
         }
     };
     using LedSpiDataArray = std::array<LedSpiData, NumberOfLeds>;
@@ -42,6 +44,8 @@ private:
 
     static constexpr auto NumberOfEndFrames = (NumberOfLeds + 15) / 16;
     std::array<uint8_t, NumberOfEndFrames> endFrames{};
+
+    static constexpr util::led::pwm::GammaCorrection<LedPwmResolutionBits> GammaCorrection{};
 
     void sendStartFrame();
 
