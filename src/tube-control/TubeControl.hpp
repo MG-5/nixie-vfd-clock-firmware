@@ -32,7 +32,11 @@ public:
     void setClock(Time clockTime);
     void setText(std::string &newText);
 
-    Dimming dimming;
+    void setTubeBrightness(uint8_t newBrightness)
+    {
+        brightness = newBrightness;
+        dimming.setBrightness(brightness);
+    }
 
     enum class State
     {
@@ -57,12 +61,14 @@ protected:
     void taskMain(void *) override;
 
 private:
+    Dimming dimming;
     TIM_HandleTypeDef *multiplexingPwmTimer;
     uint32_t fadingTimChannel;
 
     AbstractTube *tubes = nullptr;
     util::Gpio selectGpio{NixieVfdSelect_GPIO_Port, NixieVfdSelect_Pin};
 
+    uint8_t brightness = 80;
     bool isFading = false;
     uint16_t multiplexingCounter = 0;
     bool allowInterruptCall = false;

@@ -186,7 +186,7 @@ void PacketProcessor::handleBrightnessPacket()
 
     else
     {
-        tubeControl.dimming.setBrightness(newBrightness);
+        tubeControl.setTubeBrightness(newBrightness);
 
         // restore last active state
         if (tubeControl.currentState == TubeControl::State::Standby)

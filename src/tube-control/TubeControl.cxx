@@ -18,7 +18,7 @@ void TubeControl::taskMain(void *)
 
     // start multiplexing
     dimming.startTimerWithInterrupts();
-    dimming.setBrightness(80);
+    dimming.setBrightness(brightness);
 
     // multiplexing will done by interrupts , this task is only for state machine purposes
     while (true)
@@ -113,7 +113,7 @@ void TubeControl::multiplexingTimerInterrupt()
 
     // calculate compare register value needed for fading and set it
     static const auto StepsPerFadingPeriod = tubes->getStepsPerFadingPeriod();
-    if (multiplexingCounter < StepsPerFadingPeriod)
+    if (multiplexingCounter < StepsPerFadingPeriod && brightness >= 25)
     {
         const size_t Diff = StepsPerFadingPeriod - multiplexingCounter;
         const auto FadingValue = util::mapValue<size_t, size_t>(
