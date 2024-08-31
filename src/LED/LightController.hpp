@@ -39,6 +39,7 @@ public:
             prevAnimation = currentAnimation; // save last active state
 
         currentAnimation = newAnimationType;
+        rainbowAnimation.resetAnimation();
     }
 
     void setBrightness(uint8_t percentage)
