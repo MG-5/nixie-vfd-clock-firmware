@@ -23,12 +23,12 @@ void VFD::powerOff()
 void VFD::multiplexingStep(bool isFading)
 {
     uint8_t prevTubeIndex = tubeIndex;
-    if (++tubeIndex >= AbstractTube::NumberOfTubes)
+    if (++tubeIndex >= BaseTubeDisplay::NumberOfTubes)
         tubeIndex = 0;
 
     sendSegmentBits(
-        isFading ? gridDataArray1[tubeIndex].segments : gridDataArray2[tubeIndex].segments,
-        isFading ? gridDataArray1[tubeIndex].commatas : gridDataArray2[tubeIndex].commatas);
+        isFading ? currentGridValues[tubeIndex].segments : targetGridValues[tubeIndex].segments,
+        isFading ? currentGridValues[tubeIndex].commatas : targetGridValues[tubeIndex].commatas);
 
     gridGpioArray[prevTubeIndex].write(false);
     strobePeriod();
@@ -79,12 +79,12 @@ void VFD::renderInitialization()
 // -------------------------------------------------------------------------------------------------
 void VFD::renderClock(Time &newClock)
 {
-    gridDataArray1 = gridDataArray2;
+    currentGridValues = targetGridValues;
 
     for (auto i = 0; i < NumberOfTubes; i++)
     {
-        gridDataArray2[i].segments = font.getGlyph(getDigitFromClockTime(newClock, i) + '0');
-        gridDataArray2[i].commatas = 0;
+        targetGridValues[i].segments = font.getGlyph(getDigitFromClockTime(newClock, i) + '0');
+        targetGridValues[i].commatas = 0;
     }
 
     shouldDotsLights = newClock.second % 2 == 0;
@@ -93,12 +93,12 @@ void VFD::renderClock(Time &newClock)
 //--------------------------------------------------------------------------------------------------
 void VFD::renderText(const std::string &text)
 {
-    gridDataArray1 = gridDataArray2;
+    currentGridValues = targetGridValues;
 
     for (auto i = 0; i < NumberOfTubes; i++)
     {
-        gridDataArray2[i].segments = font.getGlyph(text[i]);
-        gridDataArray2[i].commatas = 0;
+        targetGridValues[i].segments = font.getGlyph(text[i]);
+        targetGridValues[i].commatas = 0;
     }
 
     shouldDotsLights = false;
@@ -124,7 +124,7 @@ void VFD::shutdownAllTubesAndDots()
 void VFD::prepareFadingDigit()
 {
     // write next digit to shift register without latching
-    sendSegmentBits(gridDataArray2[tubeIndex].segments, gridDataArray2[tubeIndex].commatas);
+    sendSegmentBits(targetGridValues[tubeIndex].segments, targetGridValues[tubeIndex].commatas);
 }
 
 //--------------------------------------------------------------------------------------------------

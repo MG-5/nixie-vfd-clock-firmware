@@ -7,7 +7,7 @@ void TubeControl::taskMain(void *)
 {
     // wait for steady steady input
     vTaskDelay(toOsTicks(100.0_ms));
-    tubes->powerOn();
+    tubeDisplay->powerOn();
 
     // wait for tubes to warm up
     vTaskDelay(toOsTicks(100.0_ms));
@@ -29,19 +29,19 @@ void TubeControl::taskMain(void *)
         {
         case State::Standby:
             HAL_TIM_OC_Stop(multiplexingPwmTimer, fadingTimChannel);
-            tubes->shutdownAllTubesAndDots();
-            tubes->powerOff();
+            tubeDisplay->shutdownAllTubesAndDots();
+            tubeDisplay->powerOff();
             break;
 
         case State::Clock:
             HAL_TIM_OC_Start(multiplexingPwmTimer, fadingTimChannel);
-            tubes->powerOn();
+            tubeDisplay->powerOn();
             displayClock();
             break;
 
         case State::Text:
             HAL_TIM_OC_Start(multiplexingPwmTimer, fadingTimChannel);
-            tubes->powerOn();
+            tubeDisplay->powerOn();
             displayText();
             break;
         }
@@ -54,10 +54,10 @@ void TubeControl::initClockType()
     bool isNixieClock = selectGpio.read();
 
     if (isNixieClock)
-        tubes = new Nixie();
+        tubeDisplay = new Nixie();
 
     else
-        tubes = new VFD();
+        tubeDisplay = new VFD();
 };
 
 //--------------------------------------------------------------------------------------------------
@@ -85,13 +85,13 @@ void TubeControl::setText(std::string &newText)
 //--------------------------------------------------------------------------------------------------
 void TubeControl::displayClock()
 {
-    tubes->renderClock(currentClockTime);
+    tubeDisplay->renderClock(currentClockTime);
     resetFading();
 }
 
 void TubeControl::displayText()
 {
-    tubes->renderText(text);
+    tubeDisplay->renderText(text);
     resetFading();
 }
 
@@ -112,12 +112,12 @@ void TubeControl::multiplexingTimerInterrupt()
         return;
 
     // calculate compare register value needed for fading and set it
-    static const auto StepsPerFadingPeriod = tubes->getStepsPerFadingPeriod();
-    if (multiplexingCounter < StepsPerFadingPeriod && brightness >= 25)
+    if (multiplexingCounter < BaseTubeDisplay::StepsPerFadingPeriod && brightness >= 25)
     {
-        const size_t Diff = StepsPerFadingPeriod - multiplexingCounter;
-        const auto FadingValue = util::mapValue<size_t, size_t>(
-            0, StepsPerFadingPeriod, Dimming::PwmMinimum, Dimming::PwmMaximum, Diff);
+        const size_t Diff = BaseTubeDisplay::StepsPerFadingPeriod - multiplexingCounter;
+        const auto FadingValue =
+            util::mapValue<size_t, size_t>(0, BaseTubeDisplay::StepsPerFadingPeriod,
+                                           Dimming::PwmMinimum, Dimming::PwmMaximum, Diff);
 
         allowInterruptCall = true;
         __HAL_TIM_SET_COMPARE(multiplexingPwmTimer, fadingTimChannel, FadingValue);
@@ -129,11 +129,11 @@ void TubeControl::multiplexingTimerInterrupt()
     }
 
     // do the actual multiplexing
-    tubes->multiplexingStep(isFading);
+    tubeDisplay->multiplexingStep(isFading);
 
     // prepare digit for fading to it by e.g. writing its data to shift register without latching
     if (isFading)
-        tubes->prepareFadingDigit();
+        tubeDisplay->prepareFadingDigit();
 
     multiplexingCounter++;
 }
@@ -141,7 +141,7 @@ void TubeControl::multiplexingTimerInterrupt()
 //--------------------------------------------------------------------------------------------------
 void TubeControl::pwmTimerInterrupt()
 {
-    tubes->shutdownCurrentTubeAndDot();
+    tubeDisplay->shutdownCurrentTubeAndDot();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -150,6 +150,6 @@ void TubeControl::fadingTimerInterrupt()
     if (allowInterruptCall)
     {
         allowInterruptCall = false;
-        tubes->updateFadingDigit();
+        tubeDisplay->updateFadingDigit();
     }
 }

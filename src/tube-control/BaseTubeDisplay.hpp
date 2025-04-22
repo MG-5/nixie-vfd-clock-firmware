@@ -6,7 +6,7 @@
 #include "units/si/scalar.hpp"
 #include "units/si/time.hpp"
 
-class AbstractTube
+class BaseTubeDisplay
 {
 public:
     static constexpr auto NumberOfTubes = 6;
@@ -15,8 +15,11 @@ public:
     // APB2 = 64MHz -> 1MHz = 1µs -> prescaler 64-1
     // auto reload period = 249 -> interrupt every 250µs
     static constexpr auto MultiplexingStepPeriod = 250.0_us;
+    static constexpr auto FadingPeriod = 160.0_ms;
+    static constexpr auto StepsPerFadingPeriod =
+        (FadingPeriod / MultiplexingStepPeriod).getMagnitude<size_t>();
 
-    AbstractTube() = default;
+    BaseTubeDisplay() = default;
 
     // general
     virtual void powerOn() = 0;
@@ -36,17 +39,15 @@ public:
     virtual void shutdownCurrentTubeAndDot() = 0;
     virtual void shutdownAllTubesAndDots() = 0;
 
-    constexpr virtual size_t getStepsPerFadingPeriod() = 0;
-
     virtual void prepareFadingDigit() = 0;
     virtual void updateFadingDigit() = 0;
 
 protected:
     // init with last tube due
-    // multiplexingStep() increment at start
-    uint8_t tubeIndex = AbstractTube::NumberOfTubes - 1;
+    // multiplexingStep() increment at start, so the first tube will be handled
+    uint8_t tubeIndex = BaseTubeDisplay::NumberOfTubes - 1;
 
-    uint8_t getDigitFromClockTime(const Time &clockTime, uint8_t index)
+    [[nodiscard]] uint8_t getDigitFromClockTime(const Time &clockTime, uint8_t index)
     {
         switch (index)
         {

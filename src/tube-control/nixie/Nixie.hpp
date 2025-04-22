@@ -2,19 +2,14 @@
 
 #include <array>
 
-#include "../AbstractTube.hpp"
+#include "../BaseTubeDisplay.hpp"
 #include "main.h"
 #include "util/gpio.hpp"
 
-class Nixie : public AbstractTube
+class Nixie : public BaseTubeDisplay
 {
 public:
     Nixie() = default;
-
-    constexpr size_t getStepsPerFadingPeriod() override
-    {
-        return (160.0_ms / AbstractTube::MultiplexingStepPeriod).getMagnitude<size_t>();
-    };
 
 protected:
     void powerOn() override;
@@ -64,14 +59,15 @@ private:
         util::Gpio{Digit9_SR_Data_GPIO_Port, Digit9_SR_Data_Pin}    //
     };
 
-    struct DigitData
+    struct DigitValue
     {
         uint8_t digit = 0;
         bool commaLeft = true;
     };
 
-    std::array<DigitData, NumberOfTubes> digitDataArray1{};
-    std::array<DigitData, NumberOfTubes> digitDataArray2{};
+    // store two arrays for fading
+    std::array<DigitValue, NumberOfTubes> currentDigitValues{};
+    std::array<DigitValue, NumberOfTubes> targetDigitValues{};
 
     bool clockArrivedOnce = false;
 };

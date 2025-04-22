@@ -2,11 +2,11 @@
 
 #include <array>
 
-#include "../AbstractTube.hpp"
+#include "../BaseTubeDisplay.hpp"
 #include "main.h"
 #include "util/gpio.hpp"
 
-class VFD : public AbstractTube
+class VFD : public BaseTubeDisplay
 {
 public:
     VFD() {};
@@ -16,11 +16,6 @@ public:
 
     void prepareFadingDigit() override;
     void updateFadingDigit() override;
-
-    constexpr size_t getStepsPerFadingPeriod() override
-    {
-        return (160.0_ms / AbstractTube::MultiplexingStepPeriod).getMagnitude<size_t>();
-    };
 
 protected:
     void powerOn() override;
@@ -54,12 +49,13 @@ private:
     void strobePeriod();
     void sendSegmentBits(uint32_t bits, uint8_t commatas = 0);
 
-    struct GridData
+    struct GridValue
     {
         uint16_t segments = 0;
         uint8_t commatas = 0b11;
     };
 
-    std::array<GridData, NumberOfTubes> gridDataArray1{};
-    std::array<GridData, NumberOfTubes> gridDataArray2{};
+    // store two arrays for fading
+    std::array<GridValue, NumberOfTubes> currentGridValues{};
+    std::array<GridValue, NumberOfTubes> targetGridValues{};
 };

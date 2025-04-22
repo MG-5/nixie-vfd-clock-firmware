@@ -7,9 +7,6 @@
 
 void Clock::taskMain(void *)
 {
-    // enable time sync interrupt
-    HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-
     while (true)
     {
         // wait for time sync pulse arriving every second

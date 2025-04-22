@@ -5,7 +5,7 @@
 #include "util/gpio.hpp"
 #include "wrappers/Task.hpp"
 
-#include "AbstractTube.hpp"
+#include "BaseTubeDisplay.hpp"
 #include "Dimming.hpp"
 #include "nixie/Nixie.hpp"
 #include "vfd/VFD.hpp"
@@ -65,7 +65,7 @@ private:
     TIM_HandleTypeDef *multiplexingPwmTimer;
     uint32_t fadingTimChannel;
 
-    AbstractTube *tubes = nullptr;
+    BaseTubeDisplay *tubeDisplay = nullptr;
     util::Gpio selectGpio{NixieVfdSelect_GPIO_Port, NixieVfdSelect_Pin};
 
     uint8_t brightness = 80;

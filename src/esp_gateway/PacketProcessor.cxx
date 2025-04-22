@@ -335,7 +335,7 @@ void PacketProcessor::handleTextPacket()
 {
     std::string textPayload{
         reinterpret_cast<char *>(payload),
-        std::min(header.payloadSize, (uint16_t)(AbstractTube ::NumberOfTubes * 2))};
+        std::min(header.payloadSize, (uint16_t)(BaseTubeDisplay::NumberOfTubes * 2))};
     // replace äöü with ae oe ue
     replaceUmlauts(textPayload);
 

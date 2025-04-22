@@ -123,8 +123,3 @@ extern "C" void TIM1_CC_IRQHandler(void)
         }
     }
 }
-
-extern "C" void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-    Application::getApplicationInstance().clock.timeSyncInterrupt();
-}

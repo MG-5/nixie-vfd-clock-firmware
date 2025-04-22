@@ -22,7 +22,7 @@ void Nixie::renderInitialization()
     {
         tube.write(true);
 
-        for (int digit = 0; digit < AbstractTube::NumberOfDigits; digit++)
+        for (int digit = 0; digit < BaseTubeDisplay::NumberOfDigits; digit++)
         {
             digitGpioArray[digit].write(true);
             vTaskDelay(toOsTicks(150.0_ms));
@@ -37,7 +37,7 @@ void Nixie::renderInitialization()
 void Nixie::multiplexingStep(bool isFading)
 {
     uint8_t prevTubeIndex = tubeIndex;
-    if (++tubeIndex >= AbstractTube::NumberOfTubes)
+    if (++tubeIndex >= BaseTubeDisplay::NumberOfTubes)
         tubeIndex = 0;
 
     tubeGpioArray[prevTubeIndex].write(false);
@@ -46,7 +46,7 @@ void Nixie::multiplexingStep(bool isFading)
         digit.write(false);
 
     // start rejuvenating every minute at 30. second
-    if (digitDataArray2[4].digit == 3 && digitDataArray2[5].digit == 0 && !isRejuvenating)
+    if (targetDigitValues[4].digit == 3 && targetDigitValues[5].digit == 0 && !isRejuvenating)
         isRejuvenating = true;
 
     if (isRejuvenating)
@@ -55,9 +55,9 @@ void Nixie::multiplexingStep(bool isFading)
     else
     {
         uint8_t digitToShow =
-            isFading ? digitDataArray1[tubeIndex].digit : digitDataArray2[tubeIndex].digit;
-        uint8_t isCommaLeftEnabled =
-            isFading ? digitDataArray1[tubeIndex].commaLeft : digitDataArray2[tubeIndex].commaLeft;
+            isFading ? currentDigitValues[tubeIndex].digit : targetDigitValues[tubeIndex].digit;
+        uint8_t isCommaLeftEnabled = isFading ? currentDigitValues[tubeIndex].commaLeft
+                                              : targetDigitValues[tubeIndex].commaLeft;
 
         if (clockArrivedOnce)
             digitGpioArray[digitToShow].write(true);
@@ -72,13 +72,13 @@ void Nixie::multiplexingStep(bool isFading)
 // -------------------------------------------------------------------------------------------------
 void Nixie::renderClock(Time &newClock)
 {
-    digitDataArray1 = digitDataArray2;
+    currentDigitValues = targetDigitValues;
 
     clockArrivedOnce = true;
     for (auto i = 0; i < NumberOfTubes; i++)
     {
-        digitDataArray2[i].digit = getDigitFromClockTime(newClock, i);
-        digitDataArray2[i].commaLeft = false;
+        targetDigitValues[i].digit = getDigitFromClockTime(newClock, i);
+        targetDigitValues[i].commaLeft = false;
     }
 
     setDotState(newClock.second % 2 == 0);
@@ -101,10 +101,10 @@ void Nixie::rejuvenateStep()
     constexpr auto RejuvenationTime = 200.0_ms;
     constexpr auto RejuvenationSteps =
         (RejuvenationTime / MultiplexingStepPeriod).getMagnitude<uint16_t>() /
-        AbstractTube::NumberOfTubes;
+        BaseTubeDisplay::NumberOfTubes;
 
     if (tubeIndex == 0)
-        if (++digit >= AbstractTube::NumberOfDigits)
+        if (++digit >= BaseTubeDisplay::NumberOfDigits)
         {
             digit = 0;
 
@@ -138,7 +138,7 @@ void Nixie::shutdownAllTubesAndDots()
 //--------------------------------------------------------------------------------------------------
 void Nixie::prepareFadingDigit()
 {
-    newNumberToShow = digitDataArray2[tubeIndex].digit;
+    newNumberToShow = targetDigitValues[tubeIndex].digit;
 }
 
 //--------------------------------------------------------------------------------------------------
