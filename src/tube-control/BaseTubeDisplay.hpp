@@ -30,6 +30,7 @@ public:
     virtual void multiplexingStep(bool isFading = false) = 0;
     virtual void renderClock(Time &newClock) = 0;
     virtual void renderText(const std::string &text) = 0;
+    virtual void setDigit(uint8_t number, uint8_t index) = 0;
 
     void setDotState(bool enable)
     {

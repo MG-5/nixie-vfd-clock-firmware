@@ -105,6 +105,13 @@ void VFD::renderText(const std::string &text)
 }
 
 //--------------------------------------------------------------------------------------------------
+void VFD::setDigit(uint8_t number, uint8_t index)
+{
+    targetGridValues[index].segments = font.getGlyph(number + '0');
+    targetGridValues[index].commatas = 0;
+}
+
+//--------------------------------------------------------------------------------------------------
 inline void VFD::shutdownCurrentTubeAndDot()
 {
     gridGpioArray[tubeIndex].write(false);

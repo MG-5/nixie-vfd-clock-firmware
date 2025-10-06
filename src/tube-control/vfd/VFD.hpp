@@ -25,6 +25,7 @@ protected:
     void multiplexingStep(bool isFading) override;
     void renderClock(Time &newClock) override;
     void renderText(const std::string &text) override;
+    void setDigit(uint8_t number, uint8_t index) override;
 
 private:
     static constexpr auto NumberBitsInShiftRegister = 20;

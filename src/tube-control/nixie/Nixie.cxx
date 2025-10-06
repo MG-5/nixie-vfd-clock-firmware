@@ -92,6 +92,14 @@ void Nixie::renderText(const std::string &text)
 }
 
 //--------------------------------------------------------------------------------------------------
+void Nixie::setDigit(uint8_t number, uint8_t index)
+{
+    clockArrivedOnce = true;
+    currentDigitValues[index].digit = targetDigitValues[index].digit;
+    targetDigitValues[index].digit = number;
+}
+
+//--------------------------------------------------------------------------------------------------
 void Nixie::rejuvenateStep()
 {
     static uint8_t digit = 0;
