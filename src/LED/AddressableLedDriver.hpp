@@ -48,7 +48,7 @@ private:
 
     LedSpiDataArray ledSpiData;
     LedSpiDataArray zeroData{};
-    uint8_t brightnessPercentage = 80;
+    uint8_t brightnessPercentage = 50;
 
     static constexpr auto NumberOfEndFrames = (NumberOfLeds + 15) / 16;
     std::array<uint8_t, NumberOfEndFrames> endFrames{};
