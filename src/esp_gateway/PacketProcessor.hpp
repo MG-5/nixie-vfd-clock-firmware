@@ -45,6 +45,7 @@ private:
     uint8_t *payload = nullptr;
     PacketHeader header{};
 
+    void resetBuffer();
     bool extractPacketFromReceiveBuffer();
     void processPacket();
     void sendResponsePacket(PacketHeader &responseHeader);
@@ -56,6 +57,7 @@ private:
     void handleLedSegmentsPacket();
     void handleClockPacket();
     void handleTextPacket();
+    void handleTimeSyncPacket();
     void handleResetPacket();
 
     void replaceUmlauts(std::string &text);

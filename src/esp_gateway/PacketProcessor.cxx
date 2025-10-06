@@ -27,6 +27,7 @@ void PacketProcessor::taskMain(void *)
     - led/brightness
     - clock
     - text
+    - timesync
     - reset
 */
 void PacketProcessor::processPacket()
@@ -56,8 +57,19 @@ void PacketProcessor::processPacket()
     else if (topicString == "text")
         handleTextPacket();
 
+    else if (topicString == "timesync")
+        handleTimeSyncPacket();
+
     else if (topicString == "reset")
         handleResetPacket();
+}
+
+// ----------------------------------------------------------------------------
+void PacketProcessor::resetBuffer()
+{
+    bufferStartPosition = 0;
+    bufferLastPosition = 0;
+    rxStream.reset();
 }
 
 //-----------------------------------------------------------------------------
@@ -68,15 +80,18 @@ bool PacketProcessor::extractPacketFromReceiveBuffer()
 
     if (bufferStartPosition == bufferLastPosition)
     {
-        bufferStartPosition = 0;
-        bufferLastPosition = 0;
+        resetBuffer();
     }
 
     const auto NumberOfBytes = rxStream.receive(
         std::span(rxBuffer + bufferLastPosition, RxBufferSize - bufferLastPosition), portMAX_DELAY);
 
     if (NumberOfBytes == 0)
-        return false; // no bytes received
+    {
+        // no bytes indicates some bullshit happens here
+        resetBuffer();
+        return false;
+    }
 
     bufferLastPosition += NumberOfBytes;
 
@@ -351,6 +366,12 @@ void PacketProcessor::handleTextPacket()
         tubeControl.currentState = TubeControl::State::Text;
         tubeControl.notify(1, util::wrappers::NotifyAction::SetBits);
     }
+}
+
+//-----------------------------------------------------------------------------
+void PacketProcessor::handleTimeSyncPacket()
+{
+    clock.timeSyncInterrupt();
 }
 
 //-----------------------------------------------------------------------------
