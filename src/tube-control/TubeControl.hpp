@@ -29,8 +29,8 @@ public:
     void pwmTimerInterrupt();
     void fadingTimerInterrupt();
 
-    void setClock(Time clockTime);
-    void setText(std::string &newText);
+    void updateClock(Time clockTime);
+    void updateText(std::string &newText);
 
     void showSeconds(bool newValue)
     {

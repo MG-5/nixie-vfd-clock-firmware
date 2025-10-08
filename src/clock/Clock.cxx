@@ -9,66 +9,54 @@ void Clock::taskMain(void *)
 {
     while (true)
     {
-        // wait for time sync pulse arriving every second
+        // wait for:
+        // - time sync from ESP
+        // - timeout (internal second tick in fallback mode)
+        // - time update from ESP
         uint32_t notificationValue = 0;
         notifyWait(ULONG_MAX, ULONG_MAX, &notificationValue, portMAX_DELAY);
-
-        if ((syncEventGroup.getBits() & sync_events::TimeSyncArrived) == 0)
-        {
-            // ESP is sending time sync pulses and we doesnt knowing the time yet
-            // so we need to request the time from the ESP
-
-            requestTimeFromEsp();
-            continue;
-        }
 
         // start/reset fallback timer
         xTimerReset(timeoutTimerHandle, portMAX_DELAY);
 
         switch (notificationValue)
         {
-        case NotifyTimeSync:
+        case NotifyBits::TimeSync:
         {
             if (isInFallback)
             {
-                // ESP is sending time syncs again, skip increment due fresh setting per UART
+                // ESP is sending time syncs (again), request time
                 isInFallback = false;
-                xTimerChangePeriod(timeoutTimerHandle, toOsTicks(2.0_s), portMAX_DELAY);
-            }
-            else
-            {
-                xTimerReset(timeoutTimerHandle, portMAX_DELAY);
-                incrementSecond();
-                tubeControl.setClock(clockTime);
+                xTimerChangePeriod(timeoutTimerHandle, toOsTicks(1.0_s + TimeoutPeriod),
+                                   portMAX_DELAY);
+                requestTimeFromEsp();
+                continue;
             }
         }
         break;
 
-        case NotifyTimeout:
+        case NotifyBits::Timeout:
         {
-            if (isInFallback)
-            {
-                incrementSecond();
-                tubeControl.setClock(clockTime);
-            }
-
-            else
+            if (!isInFallback)
             {
                 // no time sync from ESP, go in fallback and internal second switches
                 isInFallback = true;
                 xTimerChangePeriod(timeoutTimerHandle, toOsTicks(1.0_s), portMAX_DELAY);
-
-                // increment twice to compensate offset
-                incrementSecond();
-                incrementSecond();
-                tubeControl.setClock(clockTime);
             }
         }
         break;
 
+        case NotifyBits::TimeUpdated:
+            // time updated from ESP, just update display
+            tubeControl.updateClock(mainClock);
+            continue;
+
         default:
             break;
         }
+
+        clockTick();
+        tubeControl.updateClock(mainClock);
     }
 }
 
@@ -89,44 +77,17 @@ void Clock::requestTimeFromEsp()
 }
 
 //--------------------------------------------------------------------------------------------------
-void Clock::incrementSecond()
+void Clock::clockTick()
 {
-    if (shouldResetSeconds)
-    {
-        shouldResetSeconds = false;
-
-        if (clockTime.second >= 30)
-            incrementMinute(); // round up
-
-        clockTime.second = 0;
-    }
-    else
-        clockTime.addSeconds(1);
-}
-
-//--------------------------------------------------------------------------------------------------
-void Clock::incrementMinute()
-{
-    clockTime.addMinutes(1);
-}
-
-//--------------------------------------------------------------------------------------------------
-void Clock::incrementHour()
-{
-    clockTime.addHours(1);
-}
-
-//--------------------------------------------------------------------------------------------------
-void Clock::resetSecondsAtNextTimeSync()
-{
-    shouldResetSeconds = true;
+    mainClock.addSeconds(1);
 }
 
 //--------------------------------------------------------------------------------------------------
 void Clock::timeSyncInterrupt()
 {
     auto higherPriorityTaskWoken = pdFALSE;
-    notifyFromISR(NotifyTimeSync, util::wrappers::NotifyAction::SetBits, &higherPriorityTaskWoken);
+    notifyFromISR(NotifyBits::TimeSync, util::wrappers::NotifyAction::SetBits,
+                  &higherPriorityTaskWoken);
     portYIELD_FROM_ISR(higherPriorityTaskWoken);
 }
 
@@ -134,6 +95,7 @@ void Clock::timeSyncInterrupt()
 void Clock::timeoutInterrupt()
 {
     auto higherPriorityTaskWoken = pdFALSE;
-    notifyFromISR(NotifyTimeout, util::wrappers::NotifyAction::SetBits, &higherPriorityTaskWoken);
+    notifyFromISR(NotifyBits::Timeout, util::wrappers::NotifyAction::SetBits,
+                  &higherPriorityTaskWoken);
     portYIELD_FROM_ISR(higherPriorityTaskWoken);
 }

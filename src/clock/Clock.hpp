@@ -20,17 +20,31 @@ public:
           txStream(txStream)
     {
         SafeAssert(timeoutTimerHandle != nullptr);
+        xTimerChangePeriod(timeoutTimerHandle, toOsTicks(1.0_s + TimeoutPeriod), portMAX_DELAY);
     }
 
     void timeSyncInterrupt();
     void timeoutInterrupt();
 
-    void resetSecondsAtNextTimeSync();
-
-    void setClock(Time clockTime)
+    void updateMainClock(Time clockTime)
     {
-        this->clockTime = clockTime;
+        this->mainClock = clockTime;
+
+        auto higherPriorityTaskWoken = pdFALSE;
+        notifyFromISR(NotifyBits::TimeUpdated, util::wrappers::NotifyAction::SetBits,
+                      &higherPriorityTaskWoken);
+        portYIELD_FROM_ISR(higherPriorityTaskWoken);
     }
+
+    enum class State
+    {
+        Normal,
+        Countdown,
+        Countup
+    } state = State::Normal;
+
+    bool isCountdownRunning = false;
+    bool isCountupRunning = false;
 
 protected:
     void taskMain(void *);
@@ -40,17 +54,18 @@ private:
     TubeControl &tubeControl;
     util::wrappers::StreamBuffer &txStream;
 
-    static constexpr auto NotifyTimeSync = 1 << 1;
-    static constexpr auto NotifyTimeout = 1 << 2;
+    struct NotifyBits
+    {
+        static constexpr auto TimeSync = 1 << 1;
+        static constexpr auto Timeout = 1 << 2;
+        static constexpr auto TimeUpdated = 1 << 3;
+    };
 
-    bool isInFallback = false;
-    bool shouldResetSeconds = false;
+    static constexpr auto TimeoutPeriod = 0.1_s;
 
-    void incrementSecond();
-    void incrementMinute();
-    void incrementHour();
+    bool isInFallback = true;
+    Time mainClock;
 
+    void clockTick();
     void requestTimeFromEsp();
-
-    Time clockTime;
 };

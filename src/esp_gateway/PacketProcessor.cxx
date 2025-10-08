@@ -58,7 +58,7 @@ void PacketProcessor::processPacket()
     else if (topicString == "text")
         handleTextPacket();
 
-    else if (topicString == "timesync")
+    else if (topicString == "sync")
         handleTimeSyncPacket();
 
     else if (topicString == "show_seconds")
@@ -198,7 +198,7 @@ void PacketProcessor::handleBrightnessPacket()
         return;
 
     // convert string to integer
-    uint8_t newBrightness = std::clamp(std::atoi(payloadString.c_str()), 0, 100);
+    uint8_t newBrightness = std::clamp(std::atoi(payloadString.c_str()), 0, 95);
 
     if (newBrightness == 0)
         tubeControl.updateState(TubeControl::State::Standby);
@@ -345,8 +345,7 @@ void PacketProcessor::handleClockPacket()
 
     std::string clockPayload{reinterpret_cast<char *>(payload), header.payloadSize};
     Time newClock{clockPayload};
-    clock.setClock(newClock);
-    syncEventGroup.setBits(sync_events::TimeSyncArrived);
+    clock.updateMainClock(newClock);
 }
 
 //-----------------------------------------------------------------------------
@@ -363,7 +362,7 @@ void PacketProcessor::handleTextPacket()
         // add spaces to the end of the string to make it 6 characters long to fit on 6 tubes
         textPayload.append(6 - textPayload.size(), ' ');
     }
-    tubeControl.setText(textPayload);
+    tubeControl.updateText(textPayload);
 
     if (tubeControl.currentState != TubeControl::State::Text)
     {

@@ -13,7 +13,7 @@ void TubeControl::taskMain(void *)
     vTaskDelay(toOsTicks(100.0_ms));
 
     // show gimmick initialization
-    // tubes->renderInitialization();
+    // tubeDisplay->renderInitialization();
     // vTaskDelay(toOsTicks(1.0_s));
 
     // start multiplexing
@@ -67,7 +67,7 @@ void TubeControl::initClockType()
 };
 
 //--------------------------------------------------------------------------------------------------
-void TubeControl::setClock(Time clockTime)
+void TubeControl::updateClock(Time clockTime)
 {
     currentClockTime = clockTime;
 
@@ -78,7 +78,7 @@ void TubeControl::setClock(Time clockTime)
 }
 
 //--------------------------------------------------------------------------------------------------
-void TubeControl::setText(std::string &newText)
+void TubeControl::updateText(std::string &newText)
 {
     text = newText;
 
@@ -95,6 +95,7 @@ void TubeControl::displayClock()
     resetFading();
 }
 
+//--------------------------------------------------------------------------------------------------
 void TubeControl::displayText()
 {
     tubeDisplay->renderText(text);
