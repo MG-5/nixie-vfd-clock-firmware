@@ -23,26 +23,32 @@ void TubeControl::taskMain(void *)
     // multiplexing will done by interrupts , this task is only for state machine purposes
     while (true)
     {
+        // wait for state machine changes
         notifyWait(0, UINT32_MAX, nullptr, portMAX_DELAY);
 
-        switch (currentState)
+        if (currentState == State::Standby)
         {
-        case State::Standby:
             HAL_TIM_OC_Stop(multiplexingPwmTimer, fadingTimChannel);
             tubeDisplay->shutdownAllTubesAndDots();
             tubeDisplay->powerOff();
-            break;
-
-        case State::Clock:
+        }
+        else
+        {
             HAL_TIM_OC_Start(multiplexingPwmTimer, fadingTimChannel);
             tubeDisplay->powerOn();
+        }
+
+        switch (currentState)
+        {
+        case State::Clock:
             displayClock();
             break;
 
         case State::Text:
-            HAL_TIM_OC_Start(multiplexingPwmTimer, fadingTimChannel);
-            tubeDisplay->powerOn();
             displayText();
+            break;
+
+        case State::Standby:
             break;
         }
     }
@@ -129,9 +135,10 @@ void TubeControl::multiplexingTimerInterrupt()
     }
 
     // do the actual multiplexing
-    tubeDisplay->multiplexingStep(isFading);
+    tubeDisplay->multiplexingStep(isFading, shouldShowSeconds);
 
-    // prepare digit for fading to it by e.g. writing its data to shift register without latching
+    // prepare digit for fading to it by e.g. writing its data to shift register without
+    // latching
     if (isFading)
         tubeDisplay->prepareFadingDigit();
 

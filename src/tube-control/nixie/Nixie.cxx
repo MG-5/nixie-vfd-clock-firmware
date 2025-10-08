@@ -34,7 +34,7 @@ void Nixie::renderInitialization()
 }
 
 //--------------------------------------------------------------------------------------------------
-void Nixie::multiplexingStep(bool isFading)
+void Nixie::multiplexingStep(bool isFading, bool showSeconds)
 {
     uint8_t prevTubeIndex = tubeIndex;
     if (++tubeIndex >= BaseTubeDisplay::NumberOfTubes)
@@ -61,12 +61,19 @@ void Nixie::multiplexingStep(bool isFading)
 
         if (clockArrivedOnce)
             digitGpioArray[digitToShow].write(true);
+
         leftComma.write(isCommaLeftEnabled);
     }
 
-    tubeGpioArray[tubeIndex].write(true);
+    // enable last two tubes only if seconds are shown
+    const bool isLastTwoTubes = (tubeIndex == BaseTubeDisplay::NumberOfTubes - 2 ||
+                                 tubeIndex == BaseTubeDisplay::NumberOfTubes - 1);
+    const bool shouldEnableTube = showSeconds || !isLastTwoTubes;
 
-    dots.write(tubeIndex == 0 && shouldDotsLights);
+    if (shouldEnableTube)
+        tubeGpioArray[tubeIndex].write(true);
+
+    dots.write(tubeIndex == 0 && shouldDotsLights && showSeconds);
 }
 
 // -------------------------------------------------------------------------------------------------

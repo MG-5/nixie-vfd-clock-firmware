@@ -22,7 +22,7 @@ protected:
     void powerOff() override;
     void renderInitialization() override;
 
-    void multiplexingStep(bool isFading) override;
+    void multiplexingStep(bool isFading, bool showSeconds) override;
     void renderClock(Time &newClock) override;
     void renderText(const std::string &text) override;
     void setDigit(uint8_t number, uint8_t index) override;

@@ -58,6 +58,7 @@ private:
     void handleClockPacket();
     void handleTextPacket();
     void handleTimeSyncPacket();
+    void handleShowSecondsPacket();
     void handleResetPacket();
 
     void replaceUmlauts(std::string &text);

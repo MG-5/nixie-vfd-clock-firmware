@@ -20,15 +20,16 @@ void PacketProcessor::taskMain(void *)
 
 //-----------------------------------------------------------------------------
 /* possible topics:
-    - state
-    - brightness
-    - led/state
-    - led/segments
-    - led/brightness
-    - clock
-    - text
-    - timesync
-    - reset
+    - state ("standby", "clock", "text", "countdown", "countup")
+    - brightness (0-100)
+    - led/state ("off", "rainbow", "solid")
+    - led/segments ([R,G,B][R,G,B]...)
+    - led/brightness (0-100)
+    - clock (HH:MM:SS)
+    - text (max 6 characters)
+    - show_seconds ("true", "false")
+    - timesync (no payload)
+    - reset (no payload)
 */
 void PacketProcessor::processPacket()
 {
@@ -59,6 +60,9 @@ void PacketProcessor::processPacket()
 
     else if (topicString == "timesync")
         handleTimeSyncPacket();
+
+    else if (topicString == "show_seconds")
+        handleShowSecondsPacket();
 
     else if (topicString == "reset")
         handleResetPacket();
@@ -372,6 +376,20 @@ void PacketProcessor::handleTextPacket()
 void PacketProcessor::handleTimeSyncPacket()
 {
     clock.timeSyncInterrupt();
+}
+
+//-----------------------------------------------------------------------------
+void PacketProcessor::handleShowSecondsPacket()
+{
+    // make the string lowercase
+    std::string payloadString = {reinterpret_cast<char *>(payload), header.payloadSize};
+    std::transform(payloadString.begin(), payloadString.end(), payloadString.begin(), ::tolower);
+
+    if (payloadString == "true")
+        tubeControl.showSeconds(true);
+
+    else if (payloadString == "false")
+        tubeControl.showSeconds(false);
 }
 
 //-----------------------------------------------------------------------------

@@ -16,7 +16,7 @@ protected:
     void powerOff() override;
     void renderInitialization() override;
 
-    void multiplexingStep(bool isFading) override;
+    void multiplexingStep(bool isFading, bool showSeconds) override;
     void renderClock(Time &newClock) override;
     void renderText(const std::string &text) override;
     void setDigit(uint8_t number, uint8_t index) override;
@@ -38,6 +38,7 @@ private:
 
     void rejuvenateStep();
 
+    // GPIOs for tube selection
     std::array<util::Gpio, NumberOfTubes> tubeGpioArray{
         util::Gpio{Tube0_GPIO_Port, Tube0_Pin}, //
         util::Gpio{Tube1_GPIO_Port, Tube1_Pin}, //
@@ -47,6 +48,7 @@ private:
         util::Gpio{Tube5_GPIO_Port, Tube5_Pin}  //
     };
 
+    // GPIOs for digit selection
     std::array<util::Gpio, NumberOfDigits> digitGpioArray{
         util::Gpio{Digit0_GPIO_Port, Digit0_Pin},                   //
         util::Gpio{Digit1_GPIO_Port, Digit1_Pin},                   //

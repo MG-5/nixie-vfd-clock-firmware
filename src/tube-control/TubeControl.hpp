@@ -32,6 +32,11 @@ public:
     void setClock(Time clockTime);
     void setText(std::string &newText);
 
+    void showSeconds(bool newValue)
+    {
+        shouldShowSeconds = newValue;
+    }
+
     void setTubeBrightness(uint8_t newBrightness)
     {
         brightness = newBrightness;
@@ -72,6 +77,7 @@ private:
     bool isFading = false;
     uint16_t multiplexingCounter = 0;
     bool allowInterruptCall = false;
+    bool shouldShowSeconds = true;
 
     Time currentClockTime;
     std::string text = "";

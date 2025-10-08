@@ -20,7 +20,7 @@ void VFD::powerOff()
 }
 
 //--------------------------------------------------------------------------------------------------
-void VFD::multiplexingStep(bool isFading)
+void VFD::multiplexingStep(bool isFading, bool showSeconds)
 {
     uint8_t prevTubeIndex = tubeIndex;
     if (++tubeIndex >= BaseTubeDisplay::NumberOfTubes)
@@ -33,8 +33,15 @@ void VFD::multiplexingStep(bool isFading)
     gridGpioArray[prevTubeIndex].write(false);
     strobePeriod();
 
-    gridGpioArray[tubeIndex].write(true);
-    dots.write(tubeIndex == 0 && shouldDotsLights);
+    // enable last two tubes only if seconds are shown
+    const bool isLastTwoTubes = (tubeIndex == BaseTubeDisplay::NumberOfTubes - 2 ||
+                                 tubeIndex == BaseTubeDisplay::NumberOfTubes - 1);
+    const bool shouldEnableTube = showSeconds || !isLastTwoTubes;
+
+    if (shouldEnableTube)
+        gridGpioArray[tubeIndex].write(true);
+
+    dots.write(tubeIndex == 0 && shouldDotsLights && showSeconds);
 }
 
 //--------------------------------------------------------------------------------------------------
