@@ -27,6 +27,8 @@ void PacketProcessor::taskMain(void *)
     - led/brightness (0-100)
     - clock (HH:MM:SS)
     - text (max 6 characters)
+    - countdown ("start HH:MM:SS/HH:MM/SS", "pause", "resume", "reset", "stop")
+    - countup ("start", "pause", "resume", "reset")
     - show_seconds ("true", "false")
     - timesync (no payload)
     - reset (no payload)
@@ -60,6 +62,12 @@ void PacketProcessor::processPacket()
 
     else if (topicString == "sync")
         handleTimeSyncPacket();
+
+    else if (topicString == "countdown")
+        handleCountdownPacket();
+
+    else if (topicString == "countup")
+        handleCountupPacket();
 
     else if (topicString == "show_seconds")
         handleShowSecondsPacket();
@@ -374,7 +382,69 @@ void PacketProcessor::handleTextPacket()
 //-----------------------------------------------------------------------------
 void PacketProcessor::handleTimeSyncPacket()
 {
-    clock.timeSyncInterrupt();
+    clock.timeSyncCallback();
+}
+
+//-----------------------------------------------------------------------------
+void PacketProcessor::handleCountdownPacket()
+{
+    static Time countdownTime;
+
+    // make the string lowercase
+    std::string payloadString = {reinterpret_cast<char *>(payload), header.payloadSize};
+    std::transform(payloadString.begin(), payloadString.end(), payloadString.begin(), ::tolower);
+
+    if (payloadString.starts_with("start") && header.payloadSize > sizeof("start ") - 1)
+    {
+        clock.resetTimeout();
+        auto timeAsString = payloadString.substr(sizeof("start ") - 1);
+        countdownTime = Time{timeAsString};
+        clock.setCountdownClock(countdownTime);
+        clock.updateClockDisplay();
+    }
+
+    else if (payloadString == "pause")
+    {
+        clock.isCountdownRunning = false;
+    }
+
+    else if (payloadString == "start" || payloadString == "resume")
+    {
+        clock.resetTimeout();
+        clock.switchToCountdownClock();
+        clock.updateClockDisplay();
+    }
+
+    else if (payloadString == "reset")
+    {
+        clock.setCountdownClock(countdownTime);
+        clock.isCountdownRunning = false;
+        clock.updateClockDisplay();
+    }
+    else if (payloadString == "stop")
+    {
+        clock.switchToMainClock();
+    }
+}
+
+//-----------------------------------------------------------------------------
+void PacketProcessor::handleCountupPacket()
+{
+    // make the string lowercase
+    std::string payloadString = {reinterpret_cast<char *>(payload), header.payloadSize};
+    std::transform(payloadString.begin(), payloadString.end(), payloadString.begin(), ::tolower);
+
+    if (payloadString == "start" || payloadString == "resume")
+        clock.switchToCountupClock();
+
+    else if (payloadString == "pause")
+        clock.isCountupRunning = false;
+
+    else if (payloadString == "reset")
+        clock.resetCountupClock();
+
+    else if (payloadString == "stop")
+        clock.switchToMainClock();
 }
 
 //-----------------------------------------------------------------------------

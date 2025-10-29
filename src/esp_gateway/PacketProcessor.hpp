@@ -58,6 +58,8 @@ private:
     void handleClockPacket();
     void handleTextPacket();
     void handleTimeSyncPacket();
+    void handleCountdownPacket();
+    void handleCountupPacket();
     void handleShowSecondsPacket();
     void handleResetPacket();
 

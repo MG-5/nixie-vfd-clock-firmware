@@ -87,7 +87,7 @@ void Application::pwmTimerCompare()
 
 void Application::clockSecondTimeout(TimerHandle_t)
 {
-    getApplicationInstance().clock.timeoutInterrupt();
+    getApplicationInstance().clock.timeoutCallback();
 }
 
 void Application::fadingTimerCompare()

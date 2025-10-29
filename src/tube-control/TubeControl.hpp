@@ -62,6 +62,14 @@ public:
         notify(1, util::wrappers::NotifyAction::SetBits);
     }
 
+    void enableDisplayBlinkingSixTimes();
+    void disableDisplayBlinking();
+
+    bool isBlinking() const
+    {
+        return shouldDisplayBlinking;
+    }
+
 protected:
     void taskMain(void *) override;
 
@@ -78,6 +86,10 @@ private:
     uint16_t multiplexingCounter = 0;
     bool allowInterruptCall = false;
     bool shouldShowSeconds = true;
+
+    bool shouldDisplayBlinking = false;
+    uint8_t blinkingCounter = 0;
+    uint16_t stepCounter = 0;
 
     Time currentClockTime;
     std::string text = "";

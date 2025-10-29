@@ -20,20 +20,91 @@ public:
           txStream(txStream)
     {
         SafeAssert(timeoutTimerHandle != nullptr);
-        xTimerChangePeriod(timeoutTimerHandle, toOsTicks(1.0_s + TimeoutPeriod), portMAX_DELAY);
     }
 
-    void timeSyncInterrupt();
-    void timeoutInterrupt();
+    void timeSyncCallback();
+    void timeoutCallback();
 
     void updateMainClock(Time clockTime)
     {
+        state = State::Normal;
         this->mainClock = clockTime;
+        notify(NotifyBits::TimeUpdated, util::wrappers::NotifyAction::SetBits);
+    }
 
-        auto higherPriorityTaskWoken = pdFALSE;
-        notifyFromISR(NotifyBits::TimeUpdated, util::wrappers::NotifyAction::SetBits,
-                      &higherPriorityTaskWoken);
-        portYIELD_FROM_ISR(higherPriorityTaskWoken);
+    void switchToMainClock()
+    {
+        waitForBlinkingToFinish = false;
+        tubeControl.disableDisplayBlinking();
+        state = State::Normal;
+        isCountdownRunning = false;
+        isCountupRunning = false;
+
+        updateClockDisplay();
+    }
+
+    void setCountdownClock(Time countdownTime)
+    {
+        if (countdownTime.getSeconds() == 0)
+            return;
+
+        this->countdownClock = countdownTime;
+        switchToCountdownClock();
+    }
+
+    void switchToCountdownClock()
+    {
+        if (countdownClock.getSeconds() == 0)
+            return;
+
+        waitForBlinkingToFinish = false;
+        tubeControl.disableDisplayBlinking();
+        state = State::Countdown;
+        isCountdownRunning = true;
+
+        updateClockDisplay();
+    }
+
+    void switchToCountupClock()
+    {
+        waitForBlinkingToFinish = false;
+        tubeControl.disableDisplayBlinking();
+        state = State::Countup;
+        isCountupRunning = true;
+
+        updateClockDisplay();
+    }
+
+    void resetCountupClock()
+    {
+        countupClock = Time{};
+        isCountupRunning = false;
+
+        updateClockDisplay();
+    }
+
+    void updateClockDisplay()
+    {
+        switch (state)
+        {
+        default:
+        case State::Normal:
+            tubeControl.updateClock(mainClock);
+            break;
+
+        case State::Countdown:
+            tubeControl.updateClock(countdownClock);
+            break;
+
+        case State::Countup:
+            tubeControl.updateClock(countupClock);
+            break;
+        }
+    }
+
+    void resetTimeout()
+    {
+        xTimerReset(timeoutTimerHandle, portMAX_DELAY);
     }
 
     enum class State
@@ -64,8 +135,12 @@ private:
     static constexpr auto TimeoutPeriod = 0.1_s;
 
     bool isInFallback = true;
+    bool waitForBlinkingToFinish = false;
     Time mainClock;
+    Time countdownClock;
+    Time countupClock;
 
     void clockTick();
     void requestTimeFromEsp();
+    void checkCountdownFinished();
 };

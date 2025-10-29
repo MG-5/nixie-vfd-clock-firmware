@@ -118,6 +118,33 @@ void TubeControl::multiplexingTimerInterrupt()
     if (currentState == State::Standby)
         return;
 
+    if (shouldDisplayBlinking)
+    {
+        // only increase counter every 500ms
+        stepCounter++;
+        if (stepCounter >=
+            (500.0_ms / BaseTubeDisplay::MultiplexingStepPeriod).getMagnitude<size_t>())
+        {
+            blinkingCounter++;
+            stepCounter = 0;
+        }
+
+        if (blinkingCounter >= 6 * 2) // times on/off
+        {
+            shouldDisplayBlinking = false;
+            blinkingCounter = 0;
+        }
+        else
+        {
+            // blink off on odd counts
+            if ((blinkingCounter % 2) == 1)
+            {
+                tubeDisplay->shutdownCurrentTubeAndDot();
+                return;
+            }
+        }
+    }
+
     // calculate compare register value needed for fading and set it
     if (multiplexingCounter < BaseTubeDisplay::StepsPerFadingPeriod && brightness >= 25)
     {
@@ -160,4 +187,17 @@ void TubeControl::fadingTimerInterrupt()
         allowInterruptCall = false;
         tubeDisplay->updateFadingDigit();
     }
+}
+
+//--------------------------------------------------------------------------------------------------
+void TubeControl::enableDisplayBlinkingSixTimes()
+{
+    shouldDisplayBlinking = true;
+    blinkingCounter = 0;
+}
+
+//--------------------------------------------------------------------------------------------------
+void TubeControl::disableDisplayBlinking()
+{
+    shouldDisplayBlinking = false;
 }

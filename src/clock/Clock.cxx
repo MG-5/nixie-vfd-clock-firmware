@@ -17,7 +17,7 @@ void Clock::taskMain(void *)
         notifyWait(ULONG_MAX, ULONG_MAX, &notificationValue, portMAX_DELAY);
 
         // start/reset fallback timer
-        xTimerReset(timeoutTimerHandle, portMAX_DELAY);
+        resetTimeout();
 
         switch (notificationValue)
         {
@@ -30,7 +30,13 @@ void Clock::taskMain(void *)
                 xTimerChangePeriod(timeoutTimerHandle, toOsTicks(1.0_s + TimeoutPeriod),
                                    portMAX_DELAY);
                 requestTimeFromEsp();
-                continue;
+            }
+
+            else
+            {
+                // just a regular time sync
+                clockTick();
+                updateClockDisplay();
             }
         }
         break;
@@ -43,20 +49,22 @@ void Clock::taskMain(void *)
                 isInFallback = true;
                 xTimerChangePeriod(timeoutTimerHandle, toOsTicks(1.0_s), portMAX_DELAY);
             }
+            else
+            {
+                // internal second tick in fallback mode
+                clockTick();
+                updateClockDisplay();
+            }
         }
         break;
 
+        default:
         case NotifyBits::TimeUpdated:
             // time updated from ESP, just update display
-            tubeControl.updateClock(mainClock);
-            continue;
 
-        default:
+            updateClockDisplay();
             break;
         }
-
-        clockTick();
-        tubeControl.updateClock(mainClock);
     }
 }
 
@@ -80,22 +88,46 @@ void Clock::requestTimeFromEsp()
 void Clock::clockTick()
 {
     mainClock.addSeconds(1);
+
+    if (isCountdownRunning && countdownClock.getSeconds() != 0)
+        countdownClock.subSeconds(1);
+
+    if (isCountupRunning)
+        countupClock.addSeconds(1);
+
+    checkCountdownFinished();
+}
+
+//----------------------------------------------------------------------------------
+void Clock::checkCountdownFinished()
+{
+    if (waitForBlinkingToFinish)
+    {
+        if (!tubeControl.isBlinking())
+        {
+            waitForBlinkingToFinish = false;
+            state = State::Normal;
+        }
+        else
+            return;
+    }
+
+    if (isCountdownRunning && countdownClock.getSeconds() == 0)
+    {
+        isCountdownRunning = false;
+        tubeControl.enableDisplayBlinkingSixTimes();
+        waitForBlinkingToFinish = true;
+    }
 }
 
 //--------------------------------------------------------------------------------------------------
-void Clock::timeSyncInterrupt()
+void Clock::timeSyncCallback()
 {
-    auto higherPriorityTaskWoken = pdFALSE;
-    notifyFromISR(NotifyBits::TimeSync, util::wrappers::NotifyAction::SetBits,
-                  &higherPriorityTaskWoken);
-    portYIELD_FROM_ISR(higherPriorityTaskWoken);
+    notify(NotifyBits::TimeSync, util::wrappers::NotifyAction::SetBits);
 }
 
 //--------------------------------------------------------------------------------------------------
-void Clock::timeoutInterrupt()
+void Clock::timeoutCallback()
 {
-    auto higherPriorityTaskWoken = pdFALSE;
-    notifyFromISR(NotifyBits::Timeout, util::wrappers::NotifyAction::SetBits,
-                  &higherPriorityTaskWoken);
-    portYIELD_FROM_ISR(higherPriorityTaskWoken);
+    notify(NotifyBits::Timeout, util::wrappers::NotifyAction::SetBits);
 }
