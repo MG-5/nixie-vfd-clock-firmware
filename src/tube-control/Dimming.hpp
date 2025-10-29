@@ -15,7 +15,7 @@ public:
         SafeAssert(multiplexingPwmTimer != nullptr);
     };
 
-    static constexpr auto PwmMinimum = 40;
+    static constexpr auto PwmMinimum = 10;
     static constexpr auto PwmMaximum = 249;
 
     void startTimerWithInterrupts()

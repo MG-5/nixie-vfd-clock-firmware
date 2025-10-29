@@ -15,7 +15,7 @@ public:
     // APB2 = 64MHz -> 1MHz = 1µs -> prescaler 64-1
     // auto reload period = 249 -> interrupt every 250µs
     static constexpr auto MultiplexingStepPeriod = 250.0_us;
-    static constexpr auto FadingPeriod = 160.0_ms;
+    static constexpr auto FadingPeriod = 150.0_ms;
     static constexpr auto StepsPerFadingPeriod =
         (FadingPeriod / MultiplexingStepPeriod).getMagnitude<size_t>();
 

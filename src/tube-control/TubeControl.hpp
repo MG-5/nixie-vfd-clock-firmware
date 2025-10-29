@@ -83,6 +83,8 @@ private:
 
     uint8_t brightness = 80;
     bool isFading = false;
+    bool shouldResetFading = false;
+
     uint16_t multiplexingCounter = 0;
     bool allowInterruptCall = false;
     bool shouldShowSeconds = true;

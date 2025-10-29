@@ -105,11 +105,7 @@ void TubeControl::displayText()
 //--------------------------------------------------------------------------------------------------
 void TubeControl::resetFading()
 {
-    isFading = true;
-    multiplexingCounter = 0;
-
-    __HAL_TIM_SET_COMPARE(multiplexingPwmTimer, fadingTimChannel, Dimming::PwmMaximum);
-    __HAL_TIM_ENABLE_IT(multiplexingPwmTimer, TIM_IT_CC2); // fadingTimChannel
+    shouldResetFading = true;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -117,6 +113,15 @@ void TubeControl::multiplexingTimerInterrupt()
 {
     if (currentState == State::Standby)
         return;
+
+    if (shouldResetFading)
+    {
+        multiplexingCounter = 0;
+        isFading = true;
+        shouldResetFading = false;
+
+        __HAL_TIM_SET_COMPARE(multiplexingPwmTimer, fadingTimChannel, Dimming::PwmMaximum - 20);
+    }
 
     if (shouldDisplayBlinking)
     {
@@ -146,15 +151,15 @@ void TubeControl::multiplexingTimerInterrupt()
     }
 
     // calculate compare register value needed for fading and set it
-    if (multiplexingCounter < BaseTubeDisplay::StepsPerFadingPeriod && brightness >= 25)
+    if (multiplexingCounter < BaseTubeDisplay::StepsPerFadingPeriod && brightness >= 25 && isFading)
     {
         const size_t Diff = BaseTubeDisplay::StepsPerFadingPeriod - multiplexingCounter;
         const auto FadingValue =
-            util::mapValue<size_t, size_t>(0, BaseTubeDisplay::StepsPerFadingPeriod,
-                                           Dimming::PwmMinimum, Dimming::PwmMaximum, Diff);
+            util::mapValue<size_t, size_t>(1, BaseTubeDisplay::StepsPerFadingPeriod,
+                                           Dimming::PwmMinimum, Dimming::PwmMaximum - 20, Diff);
 
-        allowInterruptCall = true;
         __HAL_TIM_SET_COMPARE(multiplexingPwmTimer, fadingTimChannel, FadingValue);
+        __HAL_TIM_ENABLE_IT(multiplexingPwmTimer, TIM_IT_CC2); // fadingTimChannel
     }
     else
     {
@@ -168,9 +173,10 @@ void TubeControl::multiplexingTimerInterrupt()
     // prepare digit for fading to it by e.g. writing its data to shift register without
     // latching
     if (isFading)
+    {
         tubeDisplay->prepareFadingDigit();
-
-    multiplexingCounter++;
+        multiplexingCounter++;
+    }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -182,11 +188,7 @@ void TubeControl::pwmTimerInterrupt()
 //--------------------------------------------------------------------------------------------------
 void TubeControl::fadingTimerInterrupt()
 {
-    if (allowInterruptCall)
-    {
-        allowInterruptCall = false;
-        tubeDisplay->updateFadingDigit();
-    }
+    tubeDisplay->updateFadingDigit();
 }
 
 //--------------------------------------------------------------------------------------------------
