@@ -67,29 +67,29 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, EnableOctalBuffer_Pin|Tube0_Pin|Tube1_Pin|Tube2_Pin
                           |Tube4_Pin|LeftComma_Pin|RightComma_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PCPin PCPin */
+  /*Configure GPIO pins : Enable50V_190V_Pin Dots_Pin */
   GPIO_InitStruct.Pin = Enable50V_190V_Pin|Dots_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PtPin */
+  /*Configure GPIO pin : TimeSync_Pin */
   GPIO_InitStruct.Pin = TimeSync_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(TimeSync_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PDPin PDPin */
+  /*Configure GPIO pins : Tube3_Pin Tube5_Pin */
   GPIO_InitStruct.Pin = Tube3_Pin|Tube5_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PAPin PAPin PAPin PAPin
-                           PAPin PAPin PAPin PAPin
-                           PAPin PAPin */
+  /*Configure GPIO pins : Digit0_Pin Digit1_Pin Digit2_Blanking_Pin Digit3_Strobe_Pin
+                           Digit4_Heatwire_Pin Digit5_Pin Digit6_Pin Digit7_Pin
+                           Digit8_SR_CLK_Pin Digit9_SR_Data_Pin */
   GPIO_InitStruct.Pin = Digit0_Pin|Digit1_Pin|Digit2_Blanking_Pin|Digit3_Strobe_Pin
                           |Digit4_Heatwire_Pin|Digit5_Pin|Digit6_Pin|Digit7_Pin
                           |Digit8_SR_CLK_Pin|Digit9_SR_Data_Pin;
@@ -98,8 +98,8 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PBPin PBPin PBPin PBPin
-                           PBPin PBPin PBPin */
+  /*Configure GPIO pins : EnableOctalBuffer_Pin Tube0_Pin Tube1_Pin Tube2_Pin
+                           Tube4_Pin LeftComma_Pin RightComma_Pin */
   GPIO_InitStruct.Pin = EnableOctalBuffer_Pin|Tube0_Pin|Tube1_Pin|Tube2_Pin
                           |Tube4_Pin|LeftComma_Pin|RightComma_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -107,7 +107,7 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PtPin */
+  /*Configure GPIO pin : NixieVfdSelect_Pin */
   GPIO_InitStruct.Pin = NixieVfdSelect_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
