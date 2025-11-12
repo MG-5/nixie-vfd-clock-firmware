@@ -22,7 +22,7 @@ public:
           tubeControl(tubeControl),                                                  //
           lightController(lightController)
     {
-        SafeAssert(espUartPeripherie != nullptr);
+        configASSERT(espUartPeripherie != nullptr);
     };
 
 protected:

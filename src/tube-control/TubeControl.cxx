@@ -1,8 +1,6 @@
 #include "TubeControl.hpp"
 #include "helpers/freertos.hpp"
 
-#include "core/SafeAssert.h"
-
 void TubeControl::taskMain(void *)
 {
     // wait for steady steady input

@@ -1,7 +1,8 @@
 #pragma once
 
+#include "FreeRTOS.h"
+
 #include "LedDataTypes.hpp"
-#include "core/SafeAssert.h"
 #include "units/si/time.hpp"
 #include "util/led/GammaCorrection.hpp"
 
@@ -15,7 +16,7 @@ public:
 
     explicit AddressableLedDriver(SPI_HandleTypeDef *spiPeripherie) : spiPeripherie(spiPeripherie)
     {
-        SafeAssert(spiPeripherie != nullptr);
+        configASSERT(spiPeripherie != nullptr);
         endFrames.fill(0xFF);
     };
 

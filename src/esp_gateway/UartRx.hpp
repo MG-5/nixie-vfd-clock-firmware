@@ -16,8 +16,8 @@ public:
           rxStream(rxStream)
     {
         // Code assumes that RX dma is circular
-        SafeAssert(uartPeripherie->hdmarx != nullptr);
-        SafeAssert(uartPeripherie->hdmarx->Init.Mode == DMA_CIRCULAR);
+        configASSERT(uartPeripherie->hdmarx != nullptr);
+        configASSERT(uartPeripherie->hdmarx->Init.Mode == DMA_CIRCULAR);
     };
 
     // This interrupt is called when:
@@ -32,7 +32,7 @@ public:
         // when buffer runs over DMA Complete interrupt (redirected to here) will always fire before
         // RxIdleLine could introduce a position lower than lastIdleLineBufferPosition as
         // it (IdleLine) requires a full byte time of silence
-        SafeAssert(lastIdleLineBufferPosition <= position);
+        configASSERT(lastIdleLineBufferPosition <= position);
 
         if (lastIdleLineBufferPosition == position)
         {

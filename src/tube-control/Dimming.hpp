@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/SafeAssert.h"
 #include "tim.h"
 
 #include "util/MapValue.hpp"
@@ -12,7 +11,7 @@ public:
         : multiplexingPwmTimer(multiplexingPwmTimer), //
           pwmTimChannel(pwmTimChannel)
     {
-        SafeAssert(multiplexingPwmTimer != nullptr);
+        configASSERT(multiplexingPwmTimer != nullptr);
     };
 
     static constexpr auto PwmMinimum = 10;

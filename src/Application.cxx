@@ -4,7 +4,6 @@
 #include "task.h"
 
 #include "Application.hpp"
-#include "core/SafeAssert.h"
 #include "wrappers/Task.hpp"
 
 #include <memory>
@@ -14,14 +13,14 @@ extern "C" void StartDefaultTask(void *) // NOLINT
     static auto app = std::make_unique<Application>();
     app->run();
 
-    SafeAssert(false); // this line should be never reached
+    configASSERT(false); // this line should be never reached
 }
 
 //--------------------------------------------------------------------------------------------------
 Application::Application()
 {
     // Delegated Singleton, see getApplicationInstance() for further explanations
-    SafeAssert(instance == nullptr);
+    configASSERT(instance == nullptr);
     instance = this;
 
     registerCallbacks();
@@ -54,23 +53,23 @@ void Application::registerCallbacks()
     result = HAL_SPI_RegisterCallback(
         LedSpiPeripherie, HAL_SPI_TX_COMPLETE_CB_ID, [](SPI_HandleTypeDef *)
         { getApplicationInstance().lightController.notifySpiIsFinished(); });
-    SafeAssert(result == HAL_OK);
+    configASSERT(result == HAL_OK);
 
     // uart stuff
     result = HAL_UART_RegisterCallback(UartPeripherie, HAL_UART_TX_COMPLETE_CB_ID,
                                        [](UART_HandleTypeDef *)
                                        { getApplicationInstance().uartTx.notifyTxTask(); });
-    SafeAssert(result == HAL_OK);
+    configASSERT(result == HAL_OK);
 
     result = HAL_UART_RegisterCallback(
         UartPeripherie, HAL_UART_ERROR_CB_ID, [](UART_HandleTypeDef *)
         { getApplicationInstance().packetProcessor.uartRx.uartErrorFromISR(); });
-    SafeAssert(result == HAL_OK);
+    configASSERT(result == HAL_OK);
 
     result = HAL_UART_RegisterRxEventCallback(
         UartPeripherie, [](UART_HandleTypeDef *, uint16_t pos)
         { getApplicationInstance().packetProcessor.uartRx.rxEventsFromISR(pos); });
-    SafeAssert(result == HAL_OK);
+    configASSERT(result == HAL_OK);
 }
 
 //--------------------------------------------------------------------------------------------------

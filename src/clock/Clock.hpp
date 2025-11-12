@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/SafeAssert.h"
 #include "helpers/freertos.hpp"
 #include "timers.h"
 #include "wrappers/StreamBuffer.hpp"
@@ -19,7 +18,7 @@ public:
           tubeControl(tubeControl),                                      //
           txStream(txStream)
     {
-        SafeAssert(timeoutTimerHandle != nullptr);
+        configASSERT(timeoutTimerHandle != nullptr);
     }
 
     void timeSyncCallback();

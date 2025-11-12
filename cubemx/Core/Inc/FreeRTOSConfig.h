@@ -43,7 +43,7 @@
  *----------------------------------------------------------*/
 
 /* USER CODE BEGIN Includes */
-#include "../../../../core/inc/core/fault_handler.h"
+#include "../../../../core/include/core/fault_handler.h"
 /* USER CODE END Includes */
 
 /* Ensure definitions are only used by the compiler, and not by the assembler. */
